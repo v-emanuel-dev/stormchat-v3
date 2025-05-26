@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dimensões para estilização de regras horizontais no markdown -->
+    <dimen name="markdown_hr_height">2dp</dimen>
+    <dimen name="markdown_hr_padding">16dp</dimen>
+</resources>

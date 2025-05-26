@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 1. App Identity & Branding -->
+    <string name="app_name">StormChat</string>
+    <string name="logo_description">StormChat标志</string>
+    <string name="app_icon_description">StormChat图标</string>
+    <string name="welcome_message">你好，欢迎！我是StormChat ⚡。我能为您做什么？</string>
+    <string name="export_sender_bot">StormChat</string>
+    <string name="export_bot">StormChat</string>
+    <string name="brainstormer">头脑风暴者</string>
+    <string name="export_header_title">Brainstormia对话</string>
+
+    <!-- 2. User Authentication -->
+    <string name="login">登录</string>
+    <string name="logout">退出登录</string>
+    <string name="enter">登录</string>
+    <string name="register">注册</string>
+    <string name="login_with_google">使用Google登录</string>
+    <string name="sign_in_with_google">使用Google登录</string>
+    <string name="create_account">创建账户</string>
+    <string name="password">密码</string>
+    <string name="email">电子邮件</string>
+    <string name="no_account">没有账户？</string>
+    <string name="already_have_account">已有账户？登录</string>
+    <string name="forgot_password">忘记密码</string>
+    <string name="logging_in">正在登录...</string>
+    <string name="login_processing">登录中…</string>
+    <string name="fill_all_fields">请填写所有字段</string>
+    <string name="google_logo_description">Google标志</string>
+    <string name="hide_password">隐藏密码</string>
+    <string name="show_password">显示密码</string>
+    <string name="password_reset_title">重置密码</string>
+    <string name="password_reset">重置密码</string>
+    <string name="password_reset_instructions">输入您的电子邮件以接收密码重置说明</string>
+    <string name="password_reset_success">密码重置邮件已成功发送！</string>
+    <string name="error_email_required">请输入您的电子邮件</string>
+    <string name="send_email">发送邮件</string>
+    <string name="back_to_login">返回登录</string>
+
+    <!-- 3. Profile Management -->
+    <string name="profile">个人资料</string>
+    <string name="profile_title">我的个人资料</string>
+    <string name="my_profile">我的个人资料</string>
+    <string name="profile_description">个人资料</string>
+    <string name="profile_photo">个人资料照片</string>
+    <string name="profile_photo_placeholder">个人资料照片占位符</string>
+    <string name="photo_placeholder">个人资料照片占位符</string>
+    <string name="edit_photo">编辑照片</string>
+    <string name="email_not_available">电子邮件不可用</string>
+    <string name="logout_text">结束会话</string>
+    <string name="back_to_profile_button">返回个人资料</string>
+
+    <!-- 4. Conversation Management -->
+    <string name="conversations">对话</string>
+    <string name="conversation_list_title">我的对话</string>
+    <string name="conversation_item_description">上一次对话</string>
+    <string name="new_conversation">新对话</string>
+    <string name="new_conversation_button">新对话</string>
+    <string name="new_conversation_title">新对话</string>
+    <string name="conversation_generic_title">对话 %1$s</string>
+    <string name="rename_conversation">重命名对话</string>
+    <string name="export_conversation">导出对话</string>
+    <string name="export_conversation_description">导出对话</string>
+    <string name="export_this_conversation">导出对话</string>
+    <string name="delete_conversation">删除对话</string>
+    <string name="delete_conversation_title">删除对话</string>
+    <string name="conversation_options_desc">对话选项</string>
+    <string name="no_conversations_placeholder">暂无对话。</string>
+    <string name="message_input_hint">消息...</string>
+    <string name="message_hint">消息...</string>
+    <string name="message_input_placeholder">输入您的消息...</string>
+    <string name="action_send">发送</string>
+    <string name="send_description">发送消息</string>
+    <string name="voice_input">语音输入</string>
+    <string name="voice_input_description">语音输入</string>
+    <string name="loading_title_placeholder">加载中...</string>
+    <string name="error_loading_title">加载标题错误</string>
+    <string name="default_conversation_title_prefix">对话_</string>
+    <string name="export_conversation_file_header">来自%1$s的对话</string>
+    <string name="export_sender_user">您</string>
+    <string name="export_fallback_title">对话</string>
+    <string name="rename_action">重命名</string>
+    <string name="delete_action">删除</string>
+    <string name="delete_confirmation_title">确认删除</string>
+    <string name="delete_confirmation_text">您确定要删除此对话吗？此操作无法撤消。</string>
+    <string name="delete_confirmation_message">您确定要删除此对话吗？此操作无法撤消。</string>
+    <string name="delete_confirm_button">删除</string>
+    <string name="cancel_button">取消</string>
+    <string name="rename_conversation_dialog_title">重命名对话</string>
+    <string name="new_conversation_name_label">新对话名称</string>
+    <string name="new_name">新名称</string>
+    <string name="save_button">保存</string>
+
+    <!-- 5. AI Models -->
+    <string name="ai_model">AI模型</string>
+    <string name="ai_model_selector_title">AI模型：</string>
+    <string name="select_ai_model">选择AI模型</string>
+    <string name="ai_model_selection">AI模型选择</string>
+    <string name="reset_model">重置中...</string>
+    <string name="changing_model">更改中...</string>
+    <string name="model_default">默认模型</string>
+    <string name="model_selection_saved">AI模型偏好已保存</string>
+    <string name="model_feature_premium">此模型仅对高级用户开放</string>
+    <string name="premium_model_dialog_title">高级模型</string>
+    <string name="premium_model_dialog_message">此模型需要高级订阅。立即升级以访问高级AI模型。</string>
+    <string name="model_change_failed">更改AI模型失败</string>
+    <string name="model_description_gpt4">OpenAI最强大的模型，最适合复杂推理。</string>
+    <string name="model_description_gpt4o">最新的GPT-4变体，具有增强功能。</string>
+    <string name="model_description_gpt35">日常查询的快速高效模型。</string>
+    <string name="model_description_claude">Anthropic的高级模型，具有高推理能力。</string>
+    <string name="model_description_claude_opus">最强大的Claude模型，非常适合复杂任务。</string>
+    <string name="model_description_claude_haiku">快速高效的Claude模型，适合快速响应。</string>
+    <string name="advanced_ai_models_title">高级AI模型</string>
+    <string name="advanced_ai_models_desc">无限制访问最强大和最具创造性的AI模型。</string>
+    <string name="advanced_ai_models_desc_premium">无限制访问最强大和最具创造性的AI模型。</string>
+    <string name="advanced_ai_models_desc_basic">访问所有高级模型，如Claude和GPT-4o，获得更准确和创造性的回答。</string>
+
+    <!-- 6. Premium Features -->
+    <string name="premium_user">高级用户</string>
+    <string name="premium_member">高级会员 ✨</string>
+    <string name="premium_user_description">高级用户</string>
+    <string name="basic_member">基础会员</string>
+    <string name="plan_prefix">计划：%1$s</string>
+    <string name="plan_unknown">未知</string>
+    <string name="plan_monthly">月度</string>
+    <string name="plan_annual">年度</string>
+    <string name="plan_lifetime">终身</string>
+    <string name="plan_premium">高级</string>
+    <string name="premium_feature">高级功能</string>
+    <string name="locked_feature">锁定功能</string>
+    <string name="premium_thanks">感谢您成为高级社区的一员！</string>
+    <string name="become_premium">立即成为高级会员</string>
+    <string name="upgrade_premium">立即成为高级会员</string>
+    <string name="unlock_potential">解锁最大潜力</string>
+    <string name="premium_plans">高级计划</string>
+    <string name="reload_plans">重新加载计划</string>
+    <string name="loading_plans">加载计划中...</string>
+    <string name="no_plans_available">当前没有可用的计划。</string>
+    <string name="check_internet">请检查您的互联网连接或尝试重新加载。</string>
+    <string name="choose_plan">选择您的计划：</string>
+    <string name="subscribe_now">立即订阅</string>
+    <string name="monthly_plan">月度计划</string>
+    <string name="monthly_period">/月</string>
+    <string name="annual_plan">年度计划</string>
+    <string name="annual_period">/年</string>
+    <string name="lifetime_plan">终身计划</string>
+    <string name="lifetime_period">一次性付款</string>
+    <string name="exclusive_benefits">专属福利</string>
+    <string name="conversation_export_title">对话导出</string>
+    <string name="conversation_export_desc">以多种格式保存和分享您的对话和想法。</string>
+    <string name="conversation_export_desc_premium">以多种格式保存和分享您的对话和想法。</string>
+    <string name="conversation_export_desc_basic">轻松以多种格式保存和分享您的对话和想法。</string>
+    <string name="conversation_export_desc_basic_auto_backup">升级到高级版以自动保存和分享您的对话。</string>
+    <string name="priority_support_title">优先支持</string>
+    <string name="priority_support_desc">VIP协助，快速解决您的问题。</string>
+    <string name="priority_support_desc_premium">VIP协助，快速解决您的问题。</string>
+    <string name="priority_support_desc_basic">VIP协助，快速高效地解决您的问题。</string>
+
+    <!-- 7. Google Drive Backup & Export -->
+    <string name="auto_backup_title">自动备份到Google Drive</string>
+    <string name="enabled">已启用</string>
+    <string name="disabled">已禁用</string>
+    <string name="auto_backup_description_premium">您的对话将自动保存到Google Drive。</string>
+    <string name="auto_backup_requires_premium">高级功能！升级以启用自动备份。</string>
+    <string name="auto_backup_description_non_premium">升级到高级版以启用对话自动备份到Google Drive。</string>
+    <string name="test_one_time_backup_button">立即备份</string>
+    <string name="backup_failed_title">自动备份失败</string>
+    <string name="backup_no_user_logged_in">没有用户登录来执行备份。</string>
+    <string name="backup_user_email_not_found">未找到用户电子邮件。备份已取消。</string>
+    <string name="backup_drive_connection_failed">无法连接到Google Drive进行备份。</string>
+    <string name="backup_complete_title">自动备份已完成</string>
+    <string name="backup_no_new_conversations">没有新对话需要备份。</string>
+    <string name="backup_no_conversations_found">未找到需要备份的对话。</string>
+    <string name="backup_summary">%2$d个对话中的%1$d个已备份。</string>
+    <string name="backup_unexpected_error">备份过程中发生意外错误。</string>
+    <string name="notification_channel_backup_name">自动备份</string>
+    <string name="notification_channel_backup_description">有关自动备份状态的通知。</string>
+    <string name="export_file_prefix_auto">%1$s_AutoBackup_%2$s.txt</string>
+    <string name="export_file_prefix">Brainstormia_%1$s_%2$s.txt</string>
+    <string name="export_header">=== 从STORMCHAT导出的对话 ===</string>
+    <string name="export_message_count">消息总数：%1$d</string>
+    <string name="export_separator">=====================================</string>
+    <string name="export_unknown">未知</string>
+    <string name="export_message_separator">---</string>
+    <string name="export_dialog_title">导出对话</string>
+    <string name="export_dialog_confirmation">您想将此对话导出到Google Drive吗？</string>
+    <string name="export_dialog_title_prefix">标题：%1$s</string>
+    <string name="export_dialog_exporting">导出中...</string>
+    <string name="export_dialog_success">对话已成功导出！</string>
+    <string name="export_dialog_filename">文件名：%1$s</string>
+    <string name="export_dialog_open_drive">在Google Drive中打开</string>
+    <string name="export_dialog_error_prefix">导出错误：%1$s</string>
+    <string name="export_dialog_action_export">导出</string>
+    <string name="export_dialog_action_ok">确定</string>
+    <string name="export_dialog_action_cancel">取消</string>
+    <string name="export_header_date">日期：</string>
+
+    <!-- 8. Error Messages -->
+    <string name="error_prefix">错误：%1$s</string>
+    <string name="error_login_required">您需要登录才能更改模型</string>
+    <string name="error_premium_required">此模型需要高级订阅。使用GPT-4o。</string>
+    <string name="error_save_model">保存模型偏好时出错：%1$s</string>
+    <string name="error_loading_conversations">加载对话列表错误（原始）。</string>
+    <string name="error_processing_conversations">处理对话列表以显示时出错。</string>
+    <string name="error_load_messages">加载对话消息时出错。</string>
+    <string name="error_internal_conversation">内部错误：无法确定对话。</string>
+    <string name="error_process_history">处理历史记录或调用AI时出错：%1$s</string>
+    <string name="error_delete_conversation">删除对话时出错：%1$s</string>
+    <string name="error_cannot_rename_new">无法重命名未保存的对话。</string>
+    <string name="error_title_empty">标题不能为空。</string>
+    <string name="error_rename_conversation">重命名对话时出错：%1$s</string>
+    <string name="error_empty_response">AI返回空响应。请重试。</string>
+    <string name="error_timeout">AI响应时间过长。请重试。</string>
+    <string name="error_ai_communication">与AI通信时出错：%1$s</string>
+    <string name="error_wait_previous">请等待上一个响应。</string>
+    <string name="export_error_drive_open">打开Drive时出错：%1$s</string>
+    <string name="export_error_no_google_account">未找到Google账户</string>
+    <string name="export_error_drive_setup">设置Drive服务时出错</string>
+    <string name="export_error_drive_permissions">设置文件权限时出错</string>
+    <string name="export_error_drive_create">在Drive中创建文件时出错</string>
+    <string name="export_error_no_messages">没有消息可导出</string>
+    <string name="export_error_no_content">没有内容可导出</string>
+    <string name="export_error_unknown">未知错误</string>
+    <string name="export_error_prefix">导出失败：%1$s</string>
+    <string name="export_error_local_file">无法创建本地文件</string>
+    <string name="export_error_drive_not_init">Google Drive服务未初始化。</string>
+    <string name="export_error_folder_access">无法创建或访问文件夹：%1$s</string>
+    <string name="export_error_drive_not_init_log">尝试在未初始化DriveService的情况下导出对话。</string>
+
+    <!-- 9. UI Components & Common Elements -->
+    <string name="settings_title">设置</string>
+    <string name="go_back">返回</string>
+    <string name="back">返回</string>
+    <string name="menu">菜单</string>
+    <string name="menu_description">菜单</string>
+    <string name="or">或</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="scroll_to_top">返回顶部</string>
+    <string name="loading">加载中...</string>
+    <string name="processing">处理中...</string>
+    <string name="open_drawer_description">打开对话菜单</string>
+    <string name="switch_to_light">切换到浅色主题</string>
+    <string name="switch_to_dark">切换到深色主题</string>
+    <string name="refresh_status">刷新状态</string>
+    <string name="collapse">折叠</string>
+    <string name="expand">展开</string>
+    <string name="try_again">重试</string>
+
+    <!-- 10. Log & Debug Messages -->
+    <string name="log_drive_setup_attempt_null_email">尝试使用空或空白电子邮件配置DriveService。</string>
+    <string name="log_drive_setup_already_configured">DriveService已为用户配置：%1$s</string>
+    <string name="log_drive_setup_configuring_for_user">为用户配置DriveService：%1$s</string>
+    <string name="log_drive_setup_google_account_issue">无法获取\'%1$s\'的Google账户或账户不匹配。用户需要在应用中使用此账户登录并授予Drive权限。</string>
+    <string name="log_drive_setup_success_for_user">Drive服务成功为以下用户初始化：%1$s</string>
+    <string name="log_drive_setup_error_for_user">为%1$s初始化Drive服务时出错：%2$s</string>
+    <string name="log_drive_folder_id_not_init">尝试获取folderId时DriveService未初始化。</string>
+    <string name="log_drive_folder_id_cache_used">使用缓存中的folderId：%1$s</string>
+    <string name="log_drive_querying_folder">在Drive中查询文件夹：%1$s</string>
+    <string name="log_drive_folder_found">找到文件夹\'%1$s\'。ID：%2$s</string>
+    <string name="log_drive_folder_not_found_creating">未找到文件夹\'%1$s\'。创建中...</string>
+    <string name="log_drive_folder_created">新文件夹\'%1$s\'已创建。ID：%2$s</string>
+    <string name="log_drive_folder_io_error">获取/创建文件夹\'%1$s\'时IO错误：%2$s</string>
+    <string name="log_drive_folder_general_error">获取/创建文件夹\'%1$s\'时一般错误：%2$s</string>
+    <string name="log_drive_exporting_file_to_folder">将文件\'%1$s\'导出到文件夹ID\'%2$s\'</string>
+    <string name="log_drive_file_exported_with_id">文件\'%1$s\'已导出，ID为：%2$s。查看链接：%3$s</string>
+    <string name="log_drive_export_error">导出对话\'%1$s\'时出错：%2$s</string>
+    <string name="export_log_drive_setup_success">Drive服务设置成功</string>
+    <string name="export_log_start">开始导出对话：%1$s，标题：%2$s</string>
+    <string name="export_log_filename">准备的文件名：%1$s</string>
+    <string name="export_log_drive_create">在Google Drive中创建文件：%1$s</string>
+    <string name="export_log_drive_created">在Drive中创建的文件，ID为：%1$s</string>
+    <string name="export_log_drive_permissions">为文件设置的权限：%1$s</string>
+    <string name="export_log_local_export">导出到本地存储：%1$s</string>
+    <string name="export_log_local_saved">文件已保存到本地存储：%1$s</string>
+    <string name="export_log_content_size">格式化内容：%1$d个字符</string>
+
+    <!-- 11. Forgot password and rename conversations -->
+    <string name="password_reset_screen_title">重置密码</string>
+    <string name="password_reset_instructions_en">输入您的电子邮箱以接收密码重置说明</string>
+    <string name="email_required_error">请输入您的电子邮箱</string>
+    <string name="send_email_button">发送电子邮件</string>
+    <string name="back_to_login_button">返回登录</string>
+    <string name="rename_conversation_dialog_title_pt">重命名对话</string>
+    <string name="new_name_label">新名称</string>
+    <string name="save_button_pt">保存</string>
+    <string name="cancel_button_pt">取消</string>
+    <string name="password_reset_success_en">密码重置邮件发送成功！</string>
+    <string name="loading_state">加载中...</string>
+    <string name="password_reset_success_pt">密码重置邮件发送成功！</string>
+    <string name="password_reset_instructions_pt">输入您的电子邮箱以接收密码重置说明</string>
+
+    <!-- 12. Payment Screen Additional Strings -->
+    <string name="payment_screen_title">选择您的套餐</string>
+    <string name="premium_app_title">高级版 StormChat</string>
+    <string name="price_unavailable">价格不可用</string>
+    <string name="price_format">%1$s%2$s</string>
+    <string name="per_month">/月</string>
+    <string name="per_year">/年</string>
+    <string name="feature_premium_models">访问高级模型</string>
+    <string name="feature_conversation_export">对话导出</string>
+    <string name="feature_priority_support">优先支持</string>
+    <string name="feature_lifetime_access">终身访问高级模型</string>
+    <string name="feature_unlimited_export">无限对话导出</string>
+    <string name="feature_no_recurring_fee">无月费或年费</string>
+    <string name="purchase_error">开始购买时出错。请重试。</string>
+    <string name="processing_payment">正在处理付款...</string>
+    <string name="select_plan">选择套餐</string>
+
+    <!-- 13. Image generation strings -->
+    <string name="generate_image">生成图像</string>
+    <string name="image_prompt">描述您想要的图像...</string>
+    <string name="quality">质量</string>
+    <string name="transparent_background">透明背景</string>
+    <string name="image_generated_successfully">图像生成成功！</string>
+    <string name="generate">生成</string>
+    <string name="generate_image_description">生成图像</string>
+    <string name="error_prompt_required_after_command">请在 %1$s 命令后提供图像描述。</string>
+    <string name="generated_image_description">图像描述</string>
+    <string name="error_file_not_found_for_saving">未找到要保存的文件。</string>
+    <string name="error_saving_image_generic">保存图像时出错。</string>
+    <string name="image_saved_to_gallery">图像已保存至 %1$s</string>
+    <string name="save_image">保存图像</string>
+    <string name="image_save_permission_denied">保存图像的权限被拒绝。</string>
+    <string name="request_save_permission">要保存图像，应用需要访问您文件的权限。请在应用设置中授予权限。</string>
+    <string name="permission_required">需要权限</string>
+
+    <!-- 14. File uploads -->
+    <string name="attach_file">附加文件</string>
+    <string name="remove_attachment">删除附件</string>
+    <string name="send_with_attachment">发送带附件的消息</string>
+    <string name="file_uploaded">文件上传成功</string>
+    <string name="file_not_found">找不到文件</string>
+    <string name="no_app_to_open_file">未找到可以打开此类型文件的应用程序</string>
+    <string name="error_opening_file">打开文件时出错</string>
+    <string name="message_with_attachment_hint">添加上下文</string>
+
+    <string name="upgrade_to_premium">升级到高级版</string>
+
+</resources>

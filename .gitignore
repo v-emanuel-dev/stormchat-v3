@@ -1,0 +1,88 @@
+# =========================================
+# Arquivos e Pastas Gerados pelo Build
+# =========================================
+/build
+*.apk
+*.aab
+*.ap_
+*.a_
+
+# =========================================
+# Arquivos de Configuração Local (CRÍTICO!)
+# =========================================
+# Contém caminhos do SDK, API Keys, etc. NUNCA envie para o repo!
+local.properties
+
+# =========================================
+# Arquivos e Pastas do Android Studio / IntelliJ
+# =========================================
+# Configurações específicas do projeto da IDE
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+*.iws
+
+# Arquivos de Módulo IntelliJ
+*.iml
+
+# Pasta principal da IDE (ignora tudo dentro, exceto o que for explicitamente des-ignorado)
+/.idea/
+
+# Arquivos gerados pela IDE
+generated/
+
+# Capturas de tela do Android Studio
+captures/
+
+# =========================================
+# Arquivos e Pastas do Gradle
+# =========================================
+/.gradle
+/gradle-wrapper.jar # Opcional: alguns times commitam isso, mas pode ser ignorado
+/gradlew
+/gradlew.bat
+build/
+
+# Cache de dependências do KMP (Kotlin Multiplatform)
+.kotlin/
+
+# =========================================
+# Outros Arquivos e Pastas
+# =========================================
+# Arquivos do Sistema Operacional
+.DS_Store
+Thumbs.db
+# Arquivos de Log
+*.log
+# Arquivos de Cache
+*.lock
+# Arquivos de Configuração do Editor
+*.swp
+# Arquivos de Configuração do MacOS
+.AppleDouble
+.LSOverride
+# Arquivos de Configuração do Windows
+ehthumbs.db
+Icon?
+# Arquivos de Configuração do Linux
+.directory
+# Arquivos de Configuração do Android Studio
+*.iml
+# Arquivos de Configuração do IntelliJ
+*.ipr
+*.iws
+# Arquivos de Configuração do Visual Studio Code
+.vscode/
+# Arquivos de Configuração do Eclipse
+.classpath
+.project
+# Arquivos de Configuração do NetBeans
+nbproject/
+# Arquivos de Configuração do Xcode
+*.xcodeproj
+*.xcworkspace
+# Arquivos de Configuração do IntelliJ IDEA
+.idea/

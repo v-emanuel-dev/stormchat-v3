@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light Theme Colors -->
+    <color name="background_light">#F0F4F7</color>
+    <color name="background">#F0F4F7</color>  <!-- Adicionando a cor ausente -->
+    <color name="primary">#1A5F7A</color>
+    <color name="primary_dark">#0F4557</color>
+    <color name="secondary">#2E7D9E</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="text_dark">#121212</color>
+    <color name="text_light">#F7F7F7</color>
+    <color name="user_bubble_light">#D4E6F1</color>
+    <color name="bot_bubble_light">#1A5F7A</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="background_dark">#0F2A38</color>
+    <color name="surface_dark">#1A3A4A</color>
+    <color name="primary_dark_theme">#000000</color> <!-- Using black for topbar -->
+    <color name="secondary_dark_theme">#212121</color> <!-- Using #212121 as secondary color -->
+
+    <!-- Common Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

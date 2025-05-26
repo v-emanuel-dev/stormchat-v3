@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 1. App Identity & Branding -->
+    <string name="app_name">StormChat</string>
+    <string name="logo_description">Логотип StormChat</string>
+    <string name="app_icon_description">Иконка StormChat</string>
+    <string name="welcome_message">Привет, добро пожаловать! Я StormChat ⚡. Чем могу помочь?</string>
+    <string name="export_sender_bot">StormChat</string>
+    <string name="export_bot">StormChat</string>
+    <string name="brainstormer">Мозговой штурм</string>
+    <string name="export_header_title">Разговор Brainstormia</string>
+
+    <!-- 2. User Authentication -->
+    <string name="login">Вход</string>
+    <string name="logout">Выход</string>
+    <string name="enter">Войти</string>
+    <string name="register">Регистрация</string>
+    <string name="login_with_google">Войти через Google</string>
+    <string name="sign_in_with_google">Войти через Google</string>
+    <string name="create_account">Создать аккаунт</string>
+    <string name="password">Пароль</string>
+    <string name="email">Электронная почта</string>
+    <string name="no_account">Нет аккаунта?</string>
+    <string name="already_have_account">Уже есть аккаунт? Войти</string>
+    <string name="forgot_password">Забыли пароль</string>
+    <string name="logging_in">Выполняется вход...</string>
+    <string name="login_processing">Вход в систему…</string>
+    <string name="fill_all_fields">Пожалуйста, заполните все поля</string>
+    <string name="google_logo_description">Логотип Google</string>
+    <string name="hide_password">Скрыть пароль</string>
+    <string name="show_password">Показать пароль</string>
+    <string name="password_reset_title">Сброс пароля</string>
+    <string name="password_reset">Сбросить пароль</string>
+    <string name="password_reset_instructions">Введите электронную почту для получения инструкций по сбросу пароля</string>
+    <string name="password_reset_success">Письмо для сброса пароля успешно отправлено!</string>
+    <string name="error_email_required">Пожалуйста, введите вашу электронную почту</string>
+    <string name="send_email">Отправить письмо</string>
+    <string name="back_to_login">Вернуться ко входу</string>
+
+    <!-- 3. Profile Management -->
+    <string name="profile">Профиль</string>
+    <string name="profile_title">Мой профиль</string>
+    <string name="my_profile">Мой профиль</string>
+    <string name="profile_description">Профиль</string>
+    <string name="profile_photo">Фото профиля</string>
+    <string name="profile_photo_placeholder">Заполнитель фото профиля</string>
+    <string name="photo_placeholder">Заполнитель фото профиля</string>
+    <string name="edit_photo">Редактировать фото</string>
+    <string name="email_not_available">Электронная почта недоступна</string>
+    <string name="logout_text">Завершить сессию</string>
+    <string name="back_to_profile_button">Вернуться в профиль</string>
+
+    <!-- 4. Conversation Management -->
+    <string name="conversations">Разговоры</string>
+    <string name="conversation_list_title">Мои разговоры</string>
+    <string name="conversation_item_description">Предыдущий разговор</string>
+    <string name="new_conversation">Новый разговор</string>
+    <string name="new_conversation_button">Новый разговор</string>
+    <string name="new_conversation_title">Новый разговор</string>
+    <string name="conversation_generic_title">Разговор %1$s</string>
+    <string name="rename_conversation">Переименовать разговор</string>
+    <string name="export_conversation">Экспортировать разговор</string>
+    <string name="export_conversation_description">Экспортировать разговор</string>
+    <string name="export_this_conversation">Экспортировать разговор</string>
+    <string name="delete_conversation">Удалить разговор</string>
+    <string name="delete_conversation_title">Удалить разговор</string>
+    <string name="conversation_options_desc">Опции разговора</string>
+    <string name="no_conversations_placeholder">Пока нет разговоров.</string>
+    <string name="message_input_hint">Сообщение...</string>
+    <string name="message_hint">Сообщение...</string>
+    <string name="message_input_placeholder">Введите ваше сообщение...</string>
+    <string name="action_send">Отправить</string>
+    <string name="send_description">Отправить сообщение</string>
+    <string name="voice_input">Голосовой ввод</string>
+    <string name="voice_input_description">Голосовой ввод</string>
+    <string name="loading_title_placeholder">Загрузка...</string>
+    <string name="error_loading_title">Ошибка загрузки заголовка</string>
+    <string name="default_conversation_title_prefix">Разговор_</string>
+    <string name="export_conversation_file_header">Разговор от %1$s</string>
+    <string name="export_sender_user">Вы</string>
+    <string name="export_fallback_title">Разговор</string>
+    <string name="rename_action">Переименовать</string>
+    <string name="delete_action">Удалить</string>
+    <string name="delete_confirmation_title">Подтвердить удаление</string>
+    <string name="delete_confirmation_text">Вы уверены, что хотите удалить этот разговор? Это действие нельзя отменить.</string>
+    <string name="delete_confirmation_message">Вы уверены, что хотите удалить этот разговор? Это действие нельзя отменить.</string>
+    <string name="delete_confirm_button">Удалить</string>
+    <string name="cancel_button">Отмена</string>
+    <string name="rename_conversation_dialog_title">Переименовать разговор</string>
+    <string name="new_conversation_name_label">Новое название разговора</string>
+    <string name="new_name">Новое имя</string>
+    <string name="save_button">Сохранить</string>
+
+    <!-- 5. AI Models -->
+    <string name="ai_model">Модель ИИ</string>
+    <string name="ai_model_selector_title">Модель ИИ:</string>
+    <string name="select_ai_model">Выбрать модель ИИ</string>
+    <string name="ai_model_selection">Выбор модели ИИ</string>
+    <string name="reset_model">Сброс...</string>
+    <string name="changing_model">Изменение...</string>
+    <string name="model_default">Модель по умолчанию</string>
+    <string name="model_selection_saved">Предпочтение модели ИИ сохранено</string>
+    <string name="model_feature_premium">Эта модель доступна для пользователей Premium</string>
+    <string name="premium_model_dialog_title">Premium модель</string>
+    <string name="premium_model_dialog_message">Эта модель требует премиум-подписки. Обновитесь сейчас для доступа к продвинутым моделям ИИ.</string>
+    <string name="model_change_failed">Не удалось изменить модель ИИ</string>
+    <string name="model_description_gpt4">Самая мощная модель OpenAI, лучше всего подходит для сложных рассуждений.</string>
+    <string name="model_description_gpt4o">Последний вариант GPT-4 с улучшенными возможностями.</string>
+    <string name="model_description_gpt35">Быстрая и эффективная модель для повседневных запросов.</string>
+    <string name="model_description_claude">Продвинутая модель Anthropic с высокими способностями к рассуждению.</string>
+    <string name="model_description_claude_opus">Самая мощная модель Claude, отлично подходит для сложных задач.</string>
+    <string name="model_description_claude_haiku">Быстрая и эффективная модель Claude для быстрых ответов.</string>
+    <string name="advanced_ai_models_title">Продвинутые модели ИИ</string>
+    <string name="advanced_ai_models_desc">Неограниченный доступ к самым мощным и креативным моделям ИИ.</string>
+    <string name="advanced_ai_models_desc_premium">Неограниченный доступ к самым мощным и креативным моделям ИИ.</string>
+    <string name="advanced_ai_models_desc_basic">Доступ ко всем премиум-моделям, таким как Claude и GPT-4o, для более точных и креативных ответов.</string>
+
+    <!-- 6. Premium Features -->
+    <string name="premium_user">Premium пользователь</string>
+    <string name="premium_member">Premium участник ✨</string>
+    <string name="premium_user_description">Premium пользователь</string>
+    <string name="basic_member">Базовый участник</string>
+    <string name="plan_prefix">План: %1$s</string>
+    <string name="plan_unknown">Неизвестно</string>
+    <string name="plan_monthly">Месячный</string>
+    <string name="plan_annual">Годовой</string>
+    <string name="plan_lifetime">Пожизненный</string>
+    <string name="plan_premium">Premium</string>
+    <string name="premium_feature">Premium функция</string>
+    <string name="locked_feature">Заблокированная функция</string>
+    <string name="premium_thanks">Спасибо, что являетесь частью Premium сообщества!</string>
+    <string name="become_premium">Стать Premium сейчас</string>
+    <string name="upgrade_premium">Стать Premium сейчас</string>
+    <string name="unlock_potential">Раскройте максимальный потенциал</string>
+    <string name="premium_plans">Premium планы</string>
+    <string name="reload_plans">Перезагрузить планы</string>
+    <string name="loading_plans">Загрузка планов...</string>
+    <string name="no_plans_available">В данный момент нет доступных планов.</string>
+    <string name="check_internet">Пожалуйста, проверьте подключение к интернету или попробуйте перезагрузить.</string>
+    <string name="choose_plan">Выберите свой план:</string>
+    <string name="subscribe_now">Подписаться сейчас</string>
+    <string name="monthly_plan">Месячный план</string>
+    <string name="monthly_period">/месяц</string>
+    <string name="annual_plan">Годовой план</string>
+    <string name="annual_period">/год</string>
+    <string name="lifetime_plan">Пожизненный план</string>
+    <string name="lifetime_period">разовый платеж</string>
+    <string name="exclusive_benefits">Эксклюзивные преимущества</string>
+    <string name="conversation_export_title">Экспорт разговора</string>
+    <string name="conversation_export_desc">Сохраняйте и делитесь своими разговорами и идеями в различных форматах.</string>
+    <string name="conversation_export_desc_premium">Сохраняйте и делитесь своими разговорами и идеями в различных форматах.</string>
+    <string name="conversation_export_desc_basic">Легко сохраняйте и делитесь своими разговорами и идеями в различных форматах.</string>
+    <string name="conversation_export_desc_basic_auto_backup">Перейдите на Premium, чтобы автоматически сохранять и делиться своими разговорами.</string>
+    <string name="priority_support_title">Приоритетная поддержка</string>
+    <string name="priority_support_desc">VIP-помощь для быстрого решения ваших вопросов и проблем.</string>
+    <string name="priority_support_desc_premium">VIP-помощь для быстрого решения ваших вопросов и проблем.</string>
+    <string name="priority_support_desc_basic">VIP-помощь для быстрого и эффективного решения ваших вопросов и проблем.</string>
+
+    <!-- 7. Google Drive Backup & Export -->
+    <string name="auto_backup_title">Автоматическое резервное копирование в Google Drive</string>
+    <string name="enabled">Включено</string>
+    <string name="disabled">Отключено</string>
+    <string name="auto_backup_description_premium">Ваши разговоры будут автоматически сохраняться в Google Drive.</string>
+    <string name="auto_backup_requires_premium">Premium функция! Обновитесь, чтобы включить автоматическое резервное копирование.</string>
+    <string name="auto_backup_description_non_premium">Обновитесь до Premium, чтобы включить автоматическое резервное копирование ваших разговоров в Google Drive.</string>
+    <string name="test_one_time_backup_button">Создать резервную копию сейчас</string>
+    <string name="backup_failed_title">Автоматическое резервное копирование не удалось</string>
+    <string name="backup_no_user_logged_in">Нет вошедшего пользователя для выполнения резервного копирования.</string>
+    <string name="backup_user_email_not_found">Электронная почта пользователя не найдена. Резервное копирование отменено.</string>
+    <string name="backup_drive_connection_failed">Не удалось подключиться к Google Drive для резервного копирования.</string>
+    <string name="backup_complete_title">Автоматическое резервное копирование завершено</string>
+    <string name="backup_no_new_conversations">Нет новых разговоров для резервного копирования.</string>
+    <string name="backup_no_conversations_found">Не найдены разговоры для резервного копирования.</string>
+    <string name="backup_summary">%1$d из %2$d разговоров были скопированы.</string>
+    <string name="backup_unexpected_error">Во время резервного копирования произошла непредвиденная ошибка.</string>
+    <string name="notification_channel_backup_name">Автоматическое резервное копирование</string>
+    <string name="notification_channel_backup_description">Уведомления о статусе автоматического резервного копирования.</string>
+    <string name="export_file_prefix_auto">%1$s_AutoBackup_%2$s.txt</string>
+    <string name="export_file_prefix">Brainstormia_%1$s_%2$s.txt</string>
+    <string name="export_header">=== РАЗГОВОР ЭКСПОРТИРОВАН ИЗ STORMCHAT ===</string>
+    <string name="export_message_count">Всего сообщений: %1$d</string>
+    <string name="export_separator">=====================================</string>
+    <string name="export_unknown">Неизвестно</string>
+    <string name="export_message_separator">---</string>
+    <string name="export_dialog_title">Экспортировать разговор</string>
+    <string name="export_dialog_confirmation">Вы хотите экспортировать этот разговор в Google Drive?</string>
+    <string name="export_dialog_title_prefix">Заголовок: %1$s</string>
+    <string name="export_dialog_exporting">Экспорт...</string>
+    <string name="export_dialog_success">Разговор успешно экспортирован!</string>
+    <string name="export_dialog_filename">Имя файла: %1$s</string>
+    <string name="export_dialog_open_drive">Открыть в Google Drive</string>
+    <string name="export_dialog_error_prefix">Ошибка экспорта: %1$s</string>
+    <string name="export_dialog_action_export">Экспортировать</string>
+    <string name="export_dialog_action_ok">ОК</string>
+    <string name="export_dialog_action_cancel">Отмена</string>
+    <string name="export_header_date">Дата:</string>
+
+    <!-- 8. Error Messages -->
+    <string name="error_prefix">Ошибка: %1$s</string>
+    <string name="error_login_required">Вы должны войти в систему, чтобы изменить модель</string>
+    <string name="error_premium_required">Эта модель требует премиум-подписки. Используется GPT-4o.</string>
+    <string name="error_save_model">Ошибка сохранения предпочтений модели: %1$s</string>
+    <string name="error_loading_conversations">Ошибка загрузки списка разговоров (сырые данные).</string>
+    <string name="error_processing_conversations">Ошибка обработки списка разговоров для отображения.</string>
+    <string name="error_load_messages">Ошибка загрузки сообщений разговора.</string>
+    <string name="error_internal_conversation">Внутренняя ошибка: Невозможно определить разговор.</string>
+    <string name="error_process_history">Ошибка обработки истории или вызова ИИ: %1$s</string>
+    <string name="error_delete_conversation">Ошибка удаления разговора: %1$s</string>
+    <string name="error_cannot_rename_new">Невозможно переименовать несохраненный разговор.</string>
+    <string name="error_title_empty">Заголовок не может быть пустым.</string>
+    <string name="error_rename_conversation">Ошибка переименования разговора: %1$s</string>
+    <string name="error_empty_response">Пустой ответ от ИИ. Пожалуйста, попробуйте снова.</string>
+    <string name="error_timeout">ИИ слишком долго отвечал. Пожалуйста, попробуйте снова.</string>
+    <string name="error_ai_communication">Ошибка связи с ИИ: %1$s</string>
+    <string name="error_wait_previous">Пожалуйста, дождитесь предыдущего ответа.</string>
+    <string name="export_error_drive_open">Ошибка открытия Drive: %1$s</string>
+    <string name="export_error_no_google_account">Аккаунт Google не найден</string>
+    <string name="export_error_drive_setup">Ошибка настройки сервиса Drive</string>
+    <string name="export_error_drive_permissions">Ошибка установки разрешений файла</string>
+    <string name="export_error_drive_create">Ошибка создания файла в Drive</string>
+    <string name="export_error_no_messages">Нет сообщений для экспорта</string>
+    <string name="export_error_no_content">Нет содержимого для экспорта</string>
+    <string name="export_error_unknown">Неизвестная ошибка</string>
+    <string name="export_error_prefix">Ошибка экспорта: %1$s</string>
+    <string name="export_error_local_file">Не удалось создать локальный файл</string>
+    <string name="export_error_drive_not_init">Сервис Google Drive не инициализирован.</string>
+    <string name="export_error_folder_access">Не удалось создать папку или получить доступ: %1$s</string>
+    <string name="export_error_drive_not_init_log">Попытка экспортировать разговор без инициализированного DriveService.</string>
+
+    <!-- 9. UI Components & Common Elements -->
+    <string name="settings_title">Настройки</string>
+    <string name="go_back">Вернуться</string>
+    <string name="back">Назад</string>
+    <string name="menu">Меню</string>
+    <string name="menu_description">Меню</string>
+    <string name="or">или</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="scroll_to_top">Вернуться наверх</string>
+    <string name="loading">Загрузка...</string>
+    <string name="processing">Обработка...</string>
+    <string name="open_drawer_description">Открыть меню разговоров</string>
+    <string name="switch_to_light">Переключиться на светлую тему</string>
+    <string name="switch_to_dark">Переключиться на темную тему</string>
+    <string name="refresh_status">Обновить статус</string>
+    <string name="collapse">Свернуть</string>
+    <string name="expand">Развернуть</string>
+    <string name="try_again">Попробовать снова</string>
+
+    <!-- 10. Log & Debug Messages -->
+    <string name="log_drive_setup_attempt_null_email">Попытка настройки DriveService с пустым или отсутствующим адресом электронной почты.</string>
+    <string name="log_drive_setup_already_configured">DriveService уже настроен для пользователя: %1$s</string>
+    <string name="log_drive_setup_configuring_for_user">Настройка DriveService для пользователя: %1$s</string>
+    <string name="log_drive_setup_google_account_issue">Не удалось получить аккаунт Google для \'%1$s\' или аккаунт не соответствует. Пользователь должен быть вошедшим с этим аккаунтом в приложении и предоставить разрешения для Drive.</string>
+    <string name="log_drive_setup_success_for_user">Сервис Drive успешно инициализирован для: %1$s</string>
+    <string name="log_drive_setup_error_for_user">Ошибка инициализации сервиса Drive для %1$s: %2$s</string>
+    <string name="log_drive_folder_id_not_init">DriveService не инициализирован при попытке получить folderId.</string>
+    <string name="log_drive_folder_id_cache_used">Использование folderId из кэша: %1$s</string>
+    <string name="log_drive_querying_folder">Запрос папки в Drive: %1$s</string>
+    <string name="log_drive_folder_found">Папка \'%1$s\' найдена. ID: %2$s</string>
+    <string name="log_drive_folder_not_found_creating">Папка \'%1$s\' не найдена. Создание...</string>
+    <string name="log_drive_folder_created">Новая папка \'%1$s\' создана. ID: %2$s</string>
+    <string name="log_drive_folder_io_error">Ошибка ввода-вывода при получении/создании папки \'%1$s\': %2$s</string>
+    <string name="log_drive_folder_general_error">Общая ошибка при получении/создании папки \'%1$s\': %2$s</string>
+    <string name="log_drive_exporting_file_to_folder">Экспорт файла \'%1$s\' в папку с ID \'%2$s\'</string>
+    <string name="log_drive_file_exported_with_id">Файл \'%1$s\' экспортирован с ID: %2$s. Ссылка для просмотра: %3$s</string>
+    <string name="log_drive_export_error">Ошибка экспорта разговора \'%1$s\': %2$s</string>
+    <string name="export_log_drive_setup_success">Сервис Drive успешно настроен</string>
+    <string name="export_log_start">Начало экспорта для разговора: %1$s, заголовок: %2$s</string>
+    <string name="export_log_filename">Подготовленное имя файла: %1$s</string>
+    <string name="export_log_drive_create">Создание файла в Google Drive: %1$s</string>
+    <string name="export_log_drive_created">Файл создан в Drive с ID: %1$s</string>
+    <string name="export_log_drive_permissions">Установлены разрешения для файла: %1$s</string>
+    <string name="export_log_local_export">Экспорт в локальное хранилище: %1$s</string>
+    <string name="export_log_local_saved">Файл сохранен в локальном хранилище: %1$s</string>
+    <string name="export_log_content_size">Форматированное содержимое: %1$d символов</string>
+
+    <!-- 11. Forgot password and rename conversations -->
+    <string name="password_reset_screen_title">Сбросить пароль</string>
+    <string name="password_reset_instructions_en">Введите свой email для получения инструкций по сбросу пароля</string>
+    <string name="email_required_error">Пожалуйста, введите ваш email</string>
+    <string name="send_email_button">Отправить email</string>
+    <string name="back_to_login_button">Вернуться к входу</string>
+    <string name="rename_conversation_dialog_title_pt">Переименовать разговор</string>
+    <string name="new_name_label">Новое имя</string>
+    <string name="save_button_pt">Сохранить</string>
+    <string name="cancel_button_pt">Отмена</string>
+    <string name="password_reset_success_en">Письмо для сброса пароля успешно отправлено!</string>
+    <string name="loading_state">Загрузка...</string>
+    <string name="password_reset_success_pt">Письмо для сброса пароля успешно отправлено!</string>
+    <string name="password_reset_instructions_pt">Введите свой email для получения инструкций по сбросу пароля</string>
+
+    <!-- 12. Payment Screen Additional Strings -->
+    <string name="payment_screen_title">Выберите свой тариф</string>
+    <string name="premium_app_title">Премиум StormChat</string>
+    <string name="price_unavailable">Цена недоступна</string>
+    <string name="price_format">%1$s%2$s</string>
+    <string name="per_month">/месяц</string>
+    <string name="per_year">/год</string>
+    <string name="feature_premium_models">Доступ к премиум-моделям</string>
+    <string name="feature_conversation_export">Экспорт бесед</string>
+    <string name="feature_priority_support">Приоритетная поддержка</string>
+    <string name="feature_lifetime_access">Пожизненный доступ к премиум-моделям</string>
+    <string name="feature_unlimited_export">Неограниченный экспорт бесед</string>
+    <string name="feature_no_recurring_fee">Без ежемесячных или ежегодных платежей</string>
+    <string name="purchase_error">Ошибка при начале покупки. Пожалуйста, попробуйте снова.</string>
+    <string name="processing_payment">Обработка платежа...</string>
+    <string name="select_plan">Выбрать тариф</string>
+
+    <!-- 13. Image generation strings -->
+    <string name="generate_image">Создать изображение</string>
+    <string name="image_prompt">Опишите желаемое изображение...</string>
+    <string name="quality">Качество</string>
+    <string name="transparent_background">Прозрачный фон</string>
+    <string name="image_generated_successfully">Изображение успешно создано!</string>
+    <string name="generate">Создать</string>
+    <string name="generate_image_description">Создать изображение</string>
+    <string name="error_prompt_required_after_command">Пожалуйста, предоставьте описание изображения после команды %1$s.</string>
+    <string name="generated_image_description">Описание изображения</string>
+    <string name="error_file_not_found_for_saving">Файл для сохранения не найден.</string>
+    <string name="error_saving_image_generic">Ошибка при сохранении изображения.</string>
+    <string name="image_saved_to_gallery">Изображение сохранено в %1$s</string>
+    <string name="save_image">Сохранить изображение</string>
+    <string name="image_save_permission_denied">Отказано в разрешении на сохранение изображения.</string>
+    <string name="request_save_permission">Для сохранения изображений приложению требуется разрешение на доступ к вашим файлам. Пожалуйста, предоставьте разрешение в настройках приложения.</string>
+    <string name="permission_required">Требуется разрешение</string>
+
+    <!-- 14. File uploads -->
+    <string name="attach_file">Прикрепить файл</string>
+    <string name="remove_attachment">Удалить вложение</string>
+    <string name="send_with_attachment">Отправить с вложением</string>
+    <string name="file_uploaded">Файл успешно загружен</string>
+    <string name="file_not_found">Файл не найден</string>
+    <string name="no_app_to_open_file">Не найдено приложение для открытия этого типа файла</string>
+    <string name="error_opening_file">Ошибка при открытии файла</string>
+    <string name="message_with_attachment_hint">Добавить контекст</string>
+
+    <string name="upgrade_to_premium">Обновить до Премиум</string>
+
+</resources>

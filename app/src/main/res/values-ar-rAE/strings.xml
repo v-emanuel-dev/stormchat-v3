@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 1. App Identity & Branding -->
+    <string name="app_name">StormChat</string>
+    <string name="logo_description">شعار StormChat</string>
+    <string name="app_icon_description">أيقونة StormChat</string>
+    <string name="welcome_message">مرحبًا! أنا StormChat ⚡. كيف يمكنني مساعدتك؟</string>
+    <string name="export_sender_bot">StormChat</string>
+    <string name="export_bot">StormChat</string>
+    <string name="brainstormer">العاصف الذهني</string>
+    <string name="export_header_title">محادثة Brainstormia</string>
+
+    <!-- 2. User Authentication -->
+    <string name="login">تسجيل الدخول</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="enter">تسجيل الدخول</string>
+    <string name="register">إنشاء حساب</string>
+    <string name="login_with_google">تسجيل الدخول باستخدام Google</string>
+    <string name="sign_in_with_google">تسجيل الدخول باستخدام Google</string>
+    <string name="create_account">إنشاء حساب</string>
+    <string name="password">كلمة المرور</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="no_account">ليس لديك حساب؟</string>
+    <string name="already_have_account">لديك حساب بالفعل؟ تسجيل الدخول</string>
+    <string name="forgot_password">نسيت كلمة المرور</string>
+    <string name="logging_in">جاري تسجيل الدخول...</string>
+    <string name="login_processing">جاري تسجيل الدخول…</string>
+    <string name="fill_all_fields">يرجى ملء جميع الحقول</string>
+    <string name="google_logo_description">شعار Google</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="password_reset_title">إعادة تعيين كلمة المرور</string>
+    <string name="password_reset">إعادة تعيين كلمة المرور</string>
+    <string name="password_reset_instructions">أدخل بريدك الإلكتروني لتلقي تعليمات إعادة تعيين كلمة المرور</string>
+    <string name="password_reset_success">تم إرسال رسالة إعادة تعيين كلمة المرور بنجاح!</string>
+    <string name="error_email_required">يرجى إدخال بريدك الإلكتروني</string>
+    <string name="send_email">إرسال بريد إلكتروني</string>
+    <string name="back_to_login">العودة إلى تسجيل الدخول</string>
+
+    <!-- 3. Profile Management -->
+    <string name="profile">الملف الشخصي</string>
+    <string name="profile_title">ملفي الشخصي</string>
+    <string name="my_profile">ملفي الشخصي</string>
+    <string name="profile_description">الملف الشخصي</string>
+    <string name="profile_photo">صورة الملف الشخصي</string>
+    <string name="profile_photo_placeholder">مكان صورة الملف الشخصي</string>
+    <string name="photo_placeholder">مكان صورة الملف الشخصي</string>
+    <string name="edit_photo">تعديل الصورة</string>
+    <string name="email_not_available">البريد الإلكتروني غير متاح</string>
+    <string name="logout_text">إنهاء الجلسة</string>
+    <string name="back_to_profile_button">العودة إلى الملف الشخصي</string>
+
+    <!-- 4. Conversation Management -->
+    <string name="conversations">المحادثات</string>
+    <string name="conversation_list_title">محادثاتي</string>
+    <string name="conversation_item_description">محادثة سابقة</string>
+    <string name="new_conversation">محادثة جديدة</string>
+    <string name="new_conversation_button">محادثة جديدة</string>
+    <string name="new_conversation_title">محادثة جديدة</string>
+    <string name="conversation_generic_title">محادثة %1$s</string>
+    <string name="rename_conversation">إعادة تسمية المحادثة</string>
+    <string name="export_conversation">تصدير المحادثة</string>
+    <string name="export_conversation_description">تصدير المحادثة</string>
+    <string name="export_this_conversation">تصدير المحادثة</string>
+    <string name="delete_conversation">حذف المحادثة</string>
+    <string name="delete_conversation_title">حذف المحادثة</string>
+    <string name="conversation_options_desc">خيارات المحادثة</string>
+    <string name="no_conversations_placeholder">لا توجد محادثات حتى الآن.</string>
+    <string name="message_input_hint">رسالة...</string>
+    <string name="message_hint">رسالة...</string>
+    <string name="message_input_placeholder">اكتب رسالتك...</string>
+    <string name="action_send">إرسال</string>
+    <string name="send_description">إرسال رسالة</string>
+    <string name="voice_input">إدخال صوتي</string>
+    <string name="voice_input_description">إدخال صوتي</string>
+    <string name="loading_title_placeholder">جاري التحميل...</string>
+    <string name="error_loading_title">خطأ في تحميل العنوان</string>
+    <string name="default_conversation_title_prefix">محادثة_</string>
+    <string name="export_conversation_file_header">محادثة من %1$s</string>
+    <string name="export_sender_user">أنت</string>
+    <string name="export_fallback_title">محادثة</string>
+    <string name="rename_action">إعادة تسمية</string>
+    <string name="delete_action">حذف</string>
+    <string name="delete_confirmation_title">تأكيد الحذف</string>
+    <string name="delete_confirmation_text">هل أنت متأكد أنك تريد حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="delete_confirmation_message">هل أنت متأكد أنك تريد حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="delete_confirm_button">حذف</string>
+    <string name="cancel_button">إلغاء</string>
+    <string name="rename_conversation_dialog_title">إعادة تسمية المحادثة</string>
+    <string name="new_conversation_name_label">اسم المحادثة الجديد</string>
+    <string name="new_name">اسم جديد</string>
+    <string name="save_button">حفظ</string>
+
+    <!-- 5. AI Models -->
+    <string name="ai_model">نموذج الذكاء الاصطناعي</string>
+    <string name="ai_model_selector_title">نموذج الذكاء الاصطناعي:</string>
+    <string name="select_ai_model">اختر نموذج الذكاء الاصطناعي</string>
+    <string name="ai_model_selection">اختيار نموذج الذكاء الاصطناعي</string>
+    <string name="reset_model">إعادة تعيين...</string>
+    <string name="changing_model">جاري التغيير...</string>
+    <string name="model_default">النموذج الافتراضي</string>
+    <string name="model_selection_saved">تم حفظ تفضيل نموذج الذكاء الاصطناعي</string>
+    <string name="model_feature_premium">هذا النموذج متاح لمستخدمي الخدمة المميزة</string>
+    <string name="premium_model_dialog_title">نموذج مميز</string>
+    <string name="premium_model_dialog_message">هذا النموذج يتطلب اشتراكًا مميزًا. قم بالترقية الآن للوصول إلى نماذج الذكاء الاصطناعي المتقدمة.</string>
+    <string name="model_change_failed">فشل تغيير نموذج الذكاء الاصطناعي</string>
+    <string name="model_description_gpt4">أقوى نموذج من OpenAI، الأفضل للاستدلال المعقد.</string>
+    <string name="model_description_gpt4o">أحدث نسخة من GPT-4 مع قدرات محسنة.</string>
+    <string name="model_description_gpt35">نموذج سريع وفعال للاستعلامات اليومية.</string>
+    <string name="model_description_claude">نموذج Anthropic المتقدم مع قدرات استدلالية عالية.</string>
+    <string name="model_description_claude_opus">أقوى نموذج Claude، ممتاز للمهام المعقدة.</string>
+    <string name="model_description_claude_haiku">نموذج Claude سريع وفعال للردود السريعة.</string>
+    <string name="advanced_ai_models_title">نماذج الذكاء الاصطناعي المتقدمة</string>
+    <string name="advanced_ai_models_desc">وصول غير محدود إلى أقوى وأكثر نماذج الذكاء الاصطناعي إبداعًا.</string>
+    <string name="advanced_ai_models_desc_premium">وصول غير محدود إلى أقوى وأكثر نماذج الذكاء الاصطناعي إبداعًا.</string>
+    <string name="advanced_ai_models_desc_basic">الوصول إلى جميع النماذج المميزة مثل Claude وGPT-4o للحصول على ردود أكثر دقة وإبداعًا.</string>
+
+    <!-- 6. Premium Features -->
+    <string name="premium_user">مستخدم مميز</string>
+    <string name="premium_member">عضو مميز ✨</string>
+    <string name="premium_user_description">مستخدم مميز</string>
+    <string name="basic_member">عضو أساسي</string>
+    <string name="plan_prefix">الخطة: %1$s</string>
+    <string name="plan_unknown">غير معروف</string>
+    <string name="plan_monthly">شهري</string>
+    <string name="plan_annual">سنوي</string>
+    <string name="plan_lifetime">مدى الحياة</string>
+    <string name="plan_premium">مميز</string>
+    <string name="premium_feature">ميزة مميزة</string>
+    <string name="locked_feature">ميزة مقفلة</string>
+    <string name="premium_thanks">شكرًا لكونك جزءًا من مجتمع المميزين!</string>
+    <string name="become_premium">كن مميزًا الآن</string>
+    <string name="upgrade_premium">كن مميزًا الآن</string>
+    <string name="unlock_potential">فتح أقصى إمكانات</string>
+    <string name="premium_plans">الخطط المميزة</string>
+    <string name="reload_plans">إعادة تحميل الخطط</string>
+    <string name="loading_plans">جاري تحميل الخطط...</string>
+    <string name="no_plans_available">لا توجد خطط متاحة حاليًا.</string>
+    <string name="check_internet">يرجى التحقق من اتصالك بالإنترنت أو محاولة إعادة التحميل.</string>
+    <string name="choose_plan">اختر خطتك:</string>
+    <string name="subscribe_now">اشترك الآن</string>
+    <string name="monthly_plan">الخطة الشهرية</string>
+    <string name="monthly_period">/شهر</string>
+    <string name="annual_plan">الخطة السنوية</string>
+    <string name="annual_period">/سنة</string>
+    <string name="lifetime_plan">خطة مدى الحياة</string>
+    <string name="lifetime_period">دفعة واحدة</string>
+    <string name="exclusive_benefits">مزايا حصرية</string>
+    <string name="conversation_export_title">تصدير المحادثة</string>
+    <string name="conversation_export_desc">حفظ ومشاركة محادثاتك وأفكارك بتنسيقات متعددة.</string>
+    <string name="conversation_export_desc_premium">حفظ ومشاركة محادثاتك وأفكارك بتنسيقات متعددة.</string>
+    <string name="conversation_export_desc_basic">حفظ ومشاركة محادثاتك وأفكارك بسهولة بتنسيقات متعددة.</string>
+    <string name="conversation_export_desc_basic_auto_backup">ترقية إلى المميز لحفظ ومشاركة محادثاتك تلقائيًا.</string>
+    <string name="priority_support_title">دعم ذو أولوية</string>
+    <string name="priority_support_desc">مساعدة VIP لحل أسئلتك ومشاكلك بسرعة.</string>
+    <string name="priority_support_desc_premium">مساعدة VIP لحل أسئلتك ومشاكلك بسرعة.</string>
+    <string name="priority_support_desc_basic">مساعدة VIP لحل أسئلتك ومشاكلك بسرعة وكفاءة.</string>
+
+    <!-- 7. Google Drive Backup & Export -->
+    <string name="auto_backup_title">النسخ الاحتياطي التلقائي إلى Google Drive</string>
+    <string name="enabled">مفعّل</string>
+    <string name="disabled">معطّل</string>
+    <string name="auto_backup_description_premium">سيتم حفظ محادثاتك تلقائيًا في Google Drive.</string>
+    <string name="auto_backup_requires_premium">ميزة مميزة! قم بالترقية لتمكين النسخ الاحتياطي التلقائي.</string>
+    <string name="auto_backup_description_non_premium">قم بالترقية إلى المميز لتمكين النسخ الاحتياطي التلقائي لمحادثاتك إلى Google Drive.</string>
+    <string name="test_one_time_backup_button">النسخ الاحتياطي الآن</string>
+    <string name="backup_failed_title">فشل النسخ الاحتياطي التلقائي</string>
+    <string name="backup_no_user_logged_in">لم يتم تسجيل دخول أي مستخدم لإجراء النسخ الاحتياطي.</string>
+    <string name="backup_user_email_not_found">لم يتم العثور على البريد الإلكتروني للمستخدم. تم إلغاء النسخ الاحتياطي.</string>
+    <string name="backup_drive_connection_failed">تعذر الاتصال بـ Google Drive للنسخ الاحتياطي.</string>
+    <string name="backup_complete_title">اكتمل النسخ الاحتياطي التلقائي</string>
+    <string name="backup_no_new_conversations">لا توجد محادثات جديدة للنسخ الاحتياطي.</string>
+    <string name="backup_no_conversations_found">لم يتم العثور على محادثات للنسخ الاحتياطي.</string>
+    <string name="backup_summary">تم نسخ %1$d من %2$d محادثة احتياطيًا.</string>
+    <string name="backup_unexpected_error">حدث خطأ غير متوقع أثناء النسخ الاحتياطي.</string>
+    <string name="notification_channel_backup_name">النسخ الاحتياطي التلقائي</string>
+    <string name="notification_channel_backup_description">إشعارات حول حالة النسخ الاحتياطي التلقائي.</string>
+    <string name="export_file_prefix_auto">%1$s_AutoBackup_%2$s.txt</string>
+    <string name="export_file_prefix">Brainstormia_%1$s_%2$s.txt</string>
+    <string name="export_header">=== محادثة مصدرة من STORMCHAT ===</string>
+    <string name="export_message_count">إجمالي الرسائل: %1$d</string>
+    <string name="export_separator">=====================================</string>
+    <string name="export_unknown">غير معروف</string>
+    <string name="export_message_separator">---</string>
+    <string name="export_dialog_title">تصدير المحادثة</string>
+    <string name="export_dialog_confirmation">هل تريد تصدير هذه المحادثة إلى Google Drive؟</string>
+    <string name="export_dialog_title_prefix">العنوان: %1$s</string>
+    <string name="export_dialog_exporting">جاري التصدير...</string>
+    <string name="export_dialog_success">تم تصدير المحادثة بنجاح!</string>
+    <string name="export_dialog_filename">اسم الملف: %1$s</string>
+    <string name="export_dialog_open_drive">فتح في Google Drive</string>
+    <string name="export_dialog_error_prefix">خطأ في التصدير: %1$s</string>
+    <string name="export_dialog_action_export">تصدير</string>
+    <string name="export_dialog_action_ok">موافق</string>
+    <string name="export_dialog_action_cancel">إلغاء</string>
+    <string name="export_header_date">التاريخ:</string>
+
+    <!-- 8. Error Messages -->
+    <string name="error_prefix">خطأ: %1$s</string>
+    <string name="error_login_required">تحتاج إلى تسجيل الدخول لتغيير النموذج</string>
+    <string name="error_premium_required">هذا النموذج يتطلب اشتراكًا مميزًا. استخدام GPT-4o.</string>
+    <string name="error_save_model">خطأ في حفظ تفضيل النموذج: %1$s</string>
+    <string name="error_loading_conversations">خطأ في تحميل قائمة المحادثات (خام).</string>
+    <string name="error_processing_conversations">خطأ في معالجة قائمة المحادثات للعرض.</string>
+    <string name="error_load_messages">خطأ في تحميل رسائل المحادثة.</string>
+    <string name="error_internal_conversation">خطأ داخلي: تعذر تحديد المحادثة.</string>
+    <string name="error_process_history">خطأ في معالجة السجل أو استدعاء الذكاء الاصطناعي: %1$s</string>
+    <string name="error_delete_conversation">خطأ في حذف المحادثة: %1$s</string>
+    <string name="error_cannot_rename_new">لا يمكن إعادة تسمية محادثة غير محفوظة.</string>
+    <string name="error_title_empty">لا يمكن أن يكون العنوان فارغًا.</string>
+    <string name="error_rename_conversation">خطأ في إعادة تسمية المحادثة: %1$s</string>
+    <string name="error_empty_response">رد فارغ من الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.</string>
+    <string name="error_timeout">استغرق الذكاء الاصطناعي وقتًا طويلاً للرد. يرجى المحاولة مرة أخرى.</string>
+    <string name="error_ai_communication">خطأ في الاتصال بالذكاء الاصطناعي: %1$s</string>
+    <string name="error_wait_previous">يرجى الانتظار للرد السابق.</string>
+    <string name="export_error_drive_open">خطأ في فتح Drive: %1$s</string>
+    <string name="export_error_no_google_account">لم يتم العثور على حساب Google</string>
+    <string name="export_error_drive_setup">خطأ في إعداد خدمة Drive</string>
+    <string name="export_error_drive_permissions">خطأ في تعيين أذونات الملف</string>
+    <string name="export_error_drive_create">خطأ في إنشاء ملف في Drive</string>
+    <string name="export_error_no_messages">لا توجد رسائل للتصدير</string>
+    <string name="export_error_no_content">لا يوجد محتوى للتصدير</string>
+    <string name="export_error_unknown">خطأ غير معروف</string>
+    <string name="export_error_prefix">فشل التصدير: %1$s</string>
+    <string name="export_error_local_file">تعذر إنشاء ملف محلي</string>
+    <string name="export_error_drive_not_init">خدمة Google Drive غير مهيأة.</string>
+    <string name="export_error_folder_access">تعذر إنشاء أو الوصول إلى المجلد: %1$s</string>
+    <string name="export_error_drive_not_init_log">محاولة تصدير محادثة بدون تهيئة DriveService.</string>
+
+    <!-- 9. UI Components & Common Elements -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="go_back">العودة</string>
+    <string name="back">رجوع</string>
+    <string name="menu">القائمة</string>
+    <string name="menu_description">القائمة</string>
+    <string name="or">أو</string>
+    <string name="save">حفظ</string>
+    <string name="cancel">إلغاء</string>
+    <string name="delete">حذف</string>
+    <string name="scroll_to_top">العودة إلى الأعلى</string>
+    <string name="loading">جاري التحميل...</string>
+    <string name="processing">جاري المعالجة...</string>
+    <string name="open_drawer_description">فتح قائمة المحادثات</string>
+    <string name="switch_to_light">التبديل إلى المظهر الفاتح</string>
+    <string name="switch_to_dark">التبديل إلى المظهر الداكن</string>
+    <string name="refresh_status">تحديث الحالة</string>
+    <string name="collapse">طي</string>
+    <string name="expand">توسيع</string>
+    <string name="try_again">المحاولة مرة أخرى</string>
+
+    <!-- 10. Log & Debug Messages -->
+    <string name="log_drive_setup_attempt_null_email">محاولة تكوين DriveService ببريد إلكتروني فارغ أو غير موجود.</string>
+    <string name="log_drive_setup_already_configured">DriveService تم تكوينه بالفعل للمستخدم: %1$s</string>
+    <string name="log_drive_setup_configuring_for_user">تكوين DriveService للمستخدم: %1$s</string>
+    <string name="log_drive_setup_google_account_issue">تعذر الحصول على حساب Google لـ \'%1$s\' أو أن الحساب لا يتطابق. يحتاج المستخدم إلى تسجيل الدخول بهذا الحساب في التطبيق ومنح أذونات Drive.</string>
+    <string name="log_drive_setup_success_for_user">تم تهيئة خدمة Drive بنجاح لـ: %1$s</string>
+    <string name="log_drive_setup_error_for_user">خطأ في تهيئة خدمة Drive لـ %1$s: %2$s</string>
+    <string name="log_drive_folder_id_not_init">لم يتم تهيئة DriveService عند محاولة الحصول على folderId.</string>
+    <string name="log_drive_folder_id_cache_used">استخدام folderId من ذاكرة التخزين المؤقت: %1$s</string>
+    <string name="log_drive_querying_folder">الاستعلام عن المجلد في Drive: %1$s</string>
+    <string name="log_drive_folder_found">تم العثور على المجلد \'%1$s\'. المعرف: %2$s</string>
+    <string name="log_drive_folder_not_found_creating">لم يتم العثور على المجلد \'%1$s\'. جاري الإنشاء...</string>
+    <string name="log_drive_folder_created">تم إنشاء مجلد جديد \'%1$s\'. المعرف: %2$s</string>
+    <string name="log_drive_folder_io_error">خطأ إدخال/إخراج في الحصول على/إنشاء المجلد \'%1$s\': %2$s</string>
+    <string name="log_drive_folder_general_error">خطأ عام في الحصول على/إنشاء المجلد \'%1$s\': %2$s</string>
+    <string name="log_drive_exporting_file_to_folder">تصدير الملف \'%1$s\' إلى معرف المجلد \'%2$s\'</string>
+    <string name="log_drive_file_exported_with_id">تم تصدير الملف \'%1$s\' بمعرف: %2$s. رابط العرض: %3$s</string>
+    <string name="log_drive_export_error">خطأ في تصدير المحادثة \'%1$s\': %2$s</string>
+    <string name="export_log_drive_setup_success">تم إعداد خدمة Drive بنجاح</string>
+    <string name="export_log_start">بدء التصدير للمحادثة: %1$s، العنوان: %2$s</string>
+    <string name="export_log_filename">اسم الملف المجهز: %1$s</string>
+    <string name="export_log_drive_create">إنشاء ملف في Google Drive: %1$s</string>
+    <string name="export_log_drive_created">تم إنشاء ملف في Drive بمعرف: %1$s</string>
+    <string name="export_log_drive_permissions">تم تعيين أذونات للملف: %1$s</string>
+    <string name="export_log_local_export">التصدير إلى التخزين المحلي: %1$s</string>
+    <string name="export_log_local_saved">تم حفظ الملف في التخزين المحلي: %1$s</string>
+    <string name="export_log_content_size">المحتوى المنسق: %1$d حرف</string>
+
+    <!-- 11. Forgot password -->
+    <string name="password_reset_screen_title">إعادة تعيين كلمة المرور</string>
+    <string name="password_reset_instructions_en">أدخل بريدك الإلكتروني لتلقي تعليمات إعادة تعيين كلمة المرور</string>
+    <string name="email_required_error">الرجاء إدخال البريد الإلكتروني</string>
+    <string name="send_email_button">إرسال البريد الإلكتروني</string>
+    <string name="back_to_login_button">العودة إلى تسجيل الدخول</string>
+    <string name="rename_conversation_dialog_title_pt">إعادة تسمية المحادثة</string>
+    <string name="new_name_label">اسم جديد</string>
+    <string name="save_button_pt">حفظ</string>
+    <string name="cancel_button_pt">إلغاء</string>
+    <string name="password_reset_success_en">تم إرسال بريد إعادة تعيين كلمة المرور بنجاح!</string>
+    <string name="loading_state">جارٍ التحميل...</string>
+    <string name="password_reset_success_pt">تم إرسال بريد إعادة تعيين كلمة المرور بنجاح!</string>
+    <string name="password_reset_instructions_pt">أدخل بريدك الإلكتروني لتلقي تعليمات إعادة تعيين كلمة المرور</string>
+
+    <!-- 12. Payment Screen Additional Strings -->
+    <string name="payment_screen_title">اختر خطتك</string>
+    <string name="premium_app_title">ستورم تشات المميز</string>
+    <string name="price_unavailable">السعر غير متوفر</string>
+    <string name="price_format">%1$s%2$s</string>
+    <string name="per_month">/شهر</string>
+    <string name="per_year">/سنة</string>
+    <string name="feature_premium_models">الوصول إلى النماذج المميزة</string>
+    <string name="feature_conversation_export">تصدير المحادثات</string>
+    <string name="feature_priority_support">دعم ذو أولوية</string>
+    <string name="feature_lifetime_access">وصول مدى الحياة إلى النماذج المميزة</string>
+    <string name="feature_unlimited_export">تصدير غير محدود للمحادثات</string>
+    <string name="feature_no_recurring_fee">لا توجد رسوم شهرية أو سنوية</string>
+    <string name="purchase_error">خطأ في بدء الشراء. يرجى المحاولة مرة أخرى.</string>
+    <string name="processing_payment">جاري معالجة الدفع...</string>
+    <string name="select_plan">اختر الخطة</string>
+
+    <!-- 13. Image generation strings -->
+    <string name="generate_image">توليد صورة</string>
+    <string name="image_prompt">صف الصورة التي تريدها...</string>
+    <string name="quality">الجودة</string>
+    <string name="transparent_background">خلفية شفافة</string>
+    <string name="image_generated_successfully">تم توليد الصورة بنجاح!</string>
+    <string name="generate">توليد</string>
+    <string name="generate_image_description">توليد صورة</string>
+    <string name="error_prompt_required_after_command">الرجاء تقديم وصف للصورة بعد أمر %1$s.</string>
+    <string name="generated_image_description">وصف الصورة</string>
+    <string name="error_file_not_found_for_saving">لم يتم العثور على الملف للحفظ.</string>
+    <string name="error_saving_image_generic">خطأ في حفظ الصورة.</string>
+    <string name="image_saved_to_gallery">تم حفظ الصورة في %1$s</string>
+    <string name="save_image">حفظ الصورة</string>
+    <string name="image_save_permission_denied">تم رفض إذن حفظ الصورة.</string>
+    <string name="request_save_permission">لحفظ الصور، يحتاج التطبيق إلى إذن للوصول إلى ملفاتك. يرجى منح الإذن في إعدادات التطبيق.</string>
+    <string name="permission_required">الإذن مطلوب</string>
+
+    <!-- 14. File uploads -->
+    <string name="attach_file">إرفاق ملف</string>
+    <string name="remove_attachment">إزالة المرفق</string>
+    <string name="send_with_attachment">إرسال مع المرفق</string>
+    <string name="file_uploaded">تم رفع الملف بنجاح</string>
+    <string name="file_not_found">الملف غير موجود</string>
+    <string name="no_app_to_open_file">لم يتم العثور على تطبيق لفتح هذا النوع من الملفات</string>
+    <string name="error_opening_file">خطأ في فتح الملف</string>
+    <string name="message_with_attachment_hint">إضافة سياق</string>
+
+    <string name="upgrade_to_premium">الترقية إلى النسخة المميزة</string>
+
+</resources>

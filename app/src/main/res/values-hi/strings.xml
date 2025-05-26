@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 1. App Identity & Branding -->
+    <string name="app_name">StormChat</string>
+    <string name="logo_description">StormChat लोगो</string>
+    <string name="app_icon_description">StormChat आइकन</string>
+    <string name="welcome_message">नमस्ते, स्वागत है! मैं StormChat ⚡ हूँ। मैं आपकी कैसे मदद कर सकता हूँ?</string>
+    <string name="export_sender_bot">StormChat</string>
+    <string name="export_bot">StormChat</string>
+    <string name="brainstormer">ब्रेनस्टॉर्मर</string>
+    <string name="export_header_title">Brainstormia वार्तालाप</string>
+
+    <!-- 2. User Authentication -->
+    <string name="login">लॉगिन</string>
+    <string name="logout">लॉगआउट</string>
+    <string name="enter">साइन इन</string>
+    <string name="register">साइन अप</string>
+    <string name="login_with_google">Google से लॉगिन करें</string>
+    <string name="sign_in_with_google">Google से साइन इन करें</string>
+    <string name="create_account">खाता बनाएं</string>
+    <string name="password">पासवर्ड</string>
+    <string name="email">ईमेल</string>
+    <string name="no_account">खाता नहीं है?</string>
+    <string name="already_have_account">पहले से ही खाता है? लॉगिन करें</string>
+    <string name="forgot_password">पासवर्ड भूल गए</string>
+    <string name="logging_in">लॉगिन हो रहा है...</string>
+    <string name="login_processing">लॉगिन हो रहा है...</string>
+    <string name="fill_all_fields">कृपया सभी फ़ील्ड भरें</string>
+    <string name="google_logo_description">Google लोगो</string>
+    <string name="hide_password">पासवर्ड छिपाएं</string>
+    <string name="show_password">पासवर्ड दिखाएं</string>
+    <string name="password_reset_title">पासवर्ड रीसेट करें</string>
+    <string name="password_reset">पासवर्ड रीसेट करें</string>
+    <string name="password_reset_instructions">पासवर्ड रीसेट निर्देश प्राप्त करने के लिए अपना ईमेल दर्ज करें</string>
+    <string name="password_reset_success">पासवर्ड रीसेट ईमेल सफलतापूर्वक भेजा गया!</string>
+    <string name="error_email_required">कृपया अपना ईमेल दर्ज करें</string>
+    <string name="send_email">ईमेल भेजें</string>
+    <string name="back_to_login">लॉगिन पर वापस जाएं</string>
+
+    <!-- 3. Profile Management -->
+    <string name="profile">प्रोफाइल</string>
+    <string name="profile_title">मेरी प्रोफाइल</string>
+    <string name="my_profile">मेरी प्रोफाइल</string>
+    <string name="profile_description">प्रोफाइल</string>
+    <string name="profile_photo">प्रोफाइल फोटो</string>
+    <string name="profile_photo_placeholder">प्रोफाइल फोटो प्लेसहोल्डर</string>
+    <string name="photo_placeholder">प्रोफाइल फोटो प्लेसहोल्डर</string>
+    <string name="edit_photo">फोटो संपादित करें</string>
+    <string name="email_not_available">ईमेल उपलब्ध नहीं है</string>
+    <string name="logout_text">सत्र समाप्त करें</string>
+    <string name="back_to_profile_button">प्रोफाइल पर वापस जाएं</string>
+
+    <!-- 4. Conversation Management -->
+    <string name="conversations">वार्तालाप</string>
+    <string name="conversation_list_title">मेरे वार्तालाप</string>
+    <string name="conversation_item_description">पिछला वार्तालाप</string>
+    <string name="new_conversation">नया वार्तालाप</string>
+    <string name="new_conversation_button">नया वार्तालाप</string>
+    <string name="new_conversation_title">नया वार्तालाप</string>
+    <string name="conversation_generic_title">वार्तालाप %1$s</string>
+    <string name="rename_conversation">वार्तालाप का नाम बदलें</string>
+    <string name="export_conversation">वार्तालाप निर्यात करें</string>
+    <string name="export_conversation_description">वार्तालाप निर्यात करें</string>
+    <string name="export_this_conversation">वार्तालाप निर्यात करें</string>
+    <string name="delete_conversation">वार्तालाप हटाएं</string>
+    <string name="delete_conversation_title">वार्तालाप हटाएं</string>
+    <string name="conversation_options_desc">वार्तालाप विकल्प</string>
+    <string name="no_conversations_placeholder">अभी तक कोई वार्तालाप नहीं।</string>
+    <string name="message_input_hint">संदेश...</string>
+    <string name="message_hint">संदेश...</string>
+    <string name="message_input_placeholder">अपना संदेश टाइप करें...</string>
+    <string name="action_send">भेजें</string>
+    <string name="send_description">संदेश भेजें</string>
+    <string name="voice_input">आवाज इनपुट</string>
+    <string name="voice_input_description">आवाज इनपुट</string>
+    <string name="loading_title_placeholder">लोड हो रहा है...</string>
+    <string name="error_loading_title">शीर्षक लोड करने में त्रुटि</string>
+    <string name="default_conversation_title_prefix">वार्तालाप_</string>
+    <string name="export_conversation_file_header">%1$s से वार्तालाप</string>
+    <string name="export_sender_user">आप</string>
+    <string name="export_fallback_title">वार्तालाप</string>
+    <string name="rename_action">नाम बदलें</string>
+    <string name="delete_action">हटाएं</string>
+    <string name="delete_confirmation_title">हटाने की पुष्टि करें</string>
+    <string name="delete_confirmation_text">क्या आप वाकई इस वार्तालाप को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती है।</string>
+    <string name="delete_confirmation_message">क्या आप वाकई इस वार्तालाप को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती है।</string>
+    <string name="delete_confirm_button">हटाएं</string>
+    <string name="cancel_button">रद्द करें</string>
+    <string name="rename_conversation_dialog_title">वार्तालाप का नाम बदलें</string>
+    <string name="new_conversation_name_label">नया वार्तालाप नाम</string>
+    <string name="new_name">नया नाम</string>
+    <string name="save_button">सहेजें</string>
+
+    <!-- 5. AI Models -->
+    <string name="ai_model">AI मॉडल</string>
+    <string name="ai_model_selector_title">AI मॉडल:</string>
+    <string name="select_ai_model">AI मॉडल चुनें</string>
+    <string name="ai_model_selection">AI मॉडल चयन</string>
+    <string name="reset_model">रीसेट कर रहा है...</string>
+    <string name="changing_model">बदल रहा है...</string>
+    <string name="model_default">डिफॉल्ट मॉडल</string>
+    <string name="model_selection_saved">AI मॉडल प्राथमिकता सहेजी गई</string>
+    <string name="model_feature_premium">यह मॉडल प्रीमियम उपयोगकर्ताओं के लिए उपलब्ध है</string>
+    <string name="premium_model_dialog_title">प्रीमियम मॉडल</string>
+    <string name="premium_model_dialog_message">इस मॉडल के लिए प्रीमियम सदस्यता आवश्यक है। उन्नत AI मॉडल तक पहुंच के लिए अभी अपग्रेड करें।</string>
+    <string name="model_change_failed">AI मॉडल बदलने में विफल</string>
+    <string name="model_description_gpt4">OpenAI का सबसे शक्तिशाली मॉडल, जटिल तर्क के लिए सर्वोत्तम।</string>
+    <string name="model_description_gpt4o">बेहतर क्षमताओं के साथ नवीनतम GPT-4 संस्करण।</string>
+    <string name="model_description_gpt35">दैनिक प्रश्नों के लिए तेज़ और कुशल मॉडल।</string>
+    <string name="model_description_claude">उच्च तर्क क्षमताओं के साथ Anthropic का उन्नत मॉडल।</string>
+    <string name="model_description_claude_opus">सबसे शक्तिशाली Claude मॉडल, जटिल कार्यों के लिए उत्कृष्ट।</string>
+    <string name="model_description_claude_haiku">त्वरित प्रतिक्रियाओं के लिए तेज़ और कुशल Claude मॉडल।</string>
+    <string name="advanced_ai_models_title">उन्नत AI मॉडल</string>
+    <string name="advanced_ai_models_desc">सबसे शक्तिशाली और रचनात्मक AI मॉडल तक असीमित पहुंच।</string>
+    <string name="advanced_ai_models_desc_premium">सबसे शक्तिशाली और रचनात्मक AI मॉडल तक असीमित पहुंच।</string>
+    <string name="advanced_ai_models_desc_basic">अधिक सटीक और रचनात्मक प्रतिक्रियाओं के लिए Claude और GPT-4o जैसे सभी प्रीमियम मॉडल तक पहुंच।</string>
+
+    <!-- 6. Premium Features -->
+    <string name="premium_user">प्रीमियम उपयोगकर्ता</string>
+    <string name="premium_member">प्रीमियम सदस्य ✨</string>
+    <string name="premium_user_description">प्रीमियम उपयोगकर्ता</string>
+    <string name="basic_member">बेसिक सदस्य</string>
+    <string name="plan_prefix">प्लान: %1$s</string>
+    <string name="plan_unknown">अज्ञात</string>
+    <string name="plan_monthly">मासिक</string>
+    <string name="plan_annual">वार्षिक</string>
+    <string name="plan_lifetime">आजीवन</string>
+    <string name="plan_premium">प्रीमियम</string>
+    <string name="premium_feature">प्रीमियम सुविधा</string>
+    <string name="locked_feature">लॉक्ड सुविधा</string>
+    <string name="premium_thanks">प्रीमियम समुदाय का हिस्सा बनने के लिए धन्यवाद!</string>
+    <string name="become_premium">अभी प्रीमियम बनें</string>
+    <string name="upgrade_premium">अभी प्रीमियम बनें</string>
+    <string name="unlock_potential">अधिकतम क्षमता अनलॉक करें</string>
+    <string name="premium_plans">प्रीमियम प्लान</string>
+    <string name="reload_plans">प्लान रीलोड करें</string>
+    <string name="loading_plans">प्लान लोड हो रहे हैं...</string>
+    <string name="no_plans_available">इस समय कोई प्लान उपलब्ध नहीं है।</string>
+    <string name="check_internet">कृपया अपने इंटरनेट कनेक्शन की जांच करें या रीलोड करने का प्रयास करें।</string>
+    <string name="choose_plan">अपना प्लान चुनें:</string>
+    <string name="subscribe_now">अभी सदस्यता लें</string>
+    <string name="monthly_plan">मासिक प्लान</string>
+    <string name="monthly_period">/माह</string>
+    <string name="annual_plan">वार्षिक प्लान</string>
+    <string name="annual_period">/वर्ष</string>
+    <string name="lifetime_plan">आजीवन प्लान</string>
+    <string name="lifetime_period">एकमुश्त भुगतान</string>
+    <string name="exclusive_benefits">विशेष लाभ</string>
+    <string name="conversation_export_title">वार्तालाप निर्यात</string>
+    <string name="conversation_export_desc">अपने वार्तालाप और विचारों को कई प्रारूपों में सहेजें और साझा करें।</string>
+    <string name="conversation_export_desc_premium">अपने वार्तालाप और विचारों को कई प्रारूपों में सहेजें और साझा करें।</string>
+    <string name="conversation_export_desc_basic">अपने वार्तालाप और विचारों को कई प्रारूपों में आसानी से सहेजें और साझा करें।</string>
+    <string name="conversation_export_desc_basic_auto_backup">अपने वार्तालापों को स्वचालित रूप से सहेजने और साझा करने के लिए प्रीमियम में अपग्रेड करें।</string>
+    <string name="priority_support_title">प्राथमिकता समर्थन</string>
+    <string name="priority_support_desc">अपने प्रश्नों और समस्याओं को तेज़ी से हल करने के लिए VIP सहायता।</string>
+    <string name="priority_support_desc_premium">अपने प्रश्नों और समस्याओं को तेज़ी से हल करने के लिए VIP सहायता।</string>
+    <string name="priority_support_desc_basic">अपने प्रश्नों और समस्याओं को तेज़ी से और कुशलता से हल करने के लिए VIP सहायता।</string>
+
+    <!-- 7. Google Drive Backup & Export -->
+    <string name="auto_backup_title">Google Drive पर स्वचालित बैकअप</string>
+    <string name="enabled">सक्षम</string>
+    <string name="disabled">अक्षम</string>
+    <string name="auto_backup_description_premium">आपके वार्तालाप स्वचालित रूप से Google Drive में सहेजे जाएंगे।</string>
+    <string name="auto_backup_requires_premium">प्रीमियम सुविधा! स्वचालित बैकअप सक्षम करने के लिए अपग्रेड करें।</string>
+    <string name="auto_backup_description_non_premium">Google Drive पर अपने वार्तालापों का स्वचालित बैकअप सक्षम करने के लिए प्रीमियम में अपग्रेड करें।</string>
+    <string name="test_one_time_backup_button">अभी बैकअप करें</string>
+    <string name="backup_failed_title">स्वचालित बैकअप विफल</string>
+    <string name="backup_no_user_logged_in">बैकअप करने के लिए कोई उपयोगकर्ता लॉग इन नहीं है।</string>
+    <string name="backup_user_email_not_found">उपयोगकर्ता ईमेल नहीं मिला। बैकअप रद्द किया गया।</string>
+    <string name="backup_drive_connection_failed">बैकअप के लिए Google Drive से कनेक्ट नहीं हो सका।</string>
+    <string name="backup_complete_title">स्वचालित बैकअप पूरा हुआ</string>
+    <string name="backup_no_new_conversations">बैकअप के लिए कोई नए वार्तालाप नहीं हैं।</string>
+    <string name="backup_no_conversations_found">बैकअप के लिए कोई वार्तालाप नहीं मिले।</string>
+    <string name="backup_summary">%2$d में से %1$d वार्तालाप का बैकअप लिया गया।</string>
+    <string name="backup_unexpected_error">बैकअप के दौरान एक अप्रत्याशित त्रुटि हुई।</string>
+    <string name="notification_channel_backup_name">स्वचालित बैकअप</string>
+    <string name="notification_channel_backup_description">स्वचालित बैकअप की स्थिति के बारे में सूचनाएं।</string>
+    <string name="export_file_prefix_auto">%1$s_AutoBackup_%2$s.txt</string>
+    <string name="export_file_prefix">Brainstormia_%1$s_%2$s.txt</string>
+    <string name="export_header">=== STORMCHAT से निर्यात किया गया वार्तालाप ===</string>
+    <string name="export_message_count">कुल संदेश: %1$d</string>
+    <string name="export_separator">=====================================</string>
+    <string name="export_unknown">अज्ञात</string>
+    <string name="export_message_separator">---</string>
+    <string name="export_dialog_title">वार्तालाप निर्यात करें</string>
+    <string name="export_dialog_confirmation">क्या आप इस वार्तालाप को Google Drive पर निर्यात करना चाहते हैं?</string>
+    <string name="export_dialog_title_prefix">शीर्षक: %1$s</string>
+    <string name="export_dialog_exporting">निर्यात हो रहा है...</string>
+    <string name="export_dialog_success">वार्तालाप सफलतापूर्वक निर्यात किया गया!</string>
+    <string name="export_dialog_filename">फाइल नाम: %1$s</string>
+    <string name="export_dialog_open_drive">Google Drive में खोलें</string>
+    <string name="export_dialog_error_prefix">निर्यात त्रुटि: %1$s</string>
+    <string name="export_dialog_action_export">निर्यात करें</string>
+    <string name="export_dialog_action_ok">ठीक है</string>
+    <string name="export_dialog_action_cancel">रद्द करें</string>
+    <string name="export_header_date">दिनांक:</string>
+
+    <!-- 8. Error Messages -->
+    <string name="error_prefix">त्रुटि: %1$s</string>
+    <string name="error_login_required">मॉडल बदलने के लिए आपको लॉगिन करना होगा</string>
+    <string name="error_premium_required">इस मॉडल के लिए प्रीमियम सदस्यता आवश्यक है। GPT-4o का उपयोग कर रहा है।</string>
+    <string name="error_save_model">मॉडल प्राथमिकता सहेजने में त्रुटि: %1$s</string>
+    <string name="error_loading_conversations">वार्तालाप सूची लोड करने में त्रुटि (कच्चा)।</string>
+    <string name="error_processing_conversations">प्रदर्शन के लिए वार्तालाप सूची संसाधित करने में त्रुटि।</string>
+    <string name="error_load_messages">वार्तालाप संदेश लोड करने में त्रुटि।</string>
+    <string name="error_internal_conversation">आंतरिक त्रुटि: वार्तालाप निर्धारित नहीं किया जा सकता।</string>
+    <string name="error_process_history">इतिहास संसाधित करने या AI को कॉल करने में त्रुटि: %1$s</string>
+    <string name="error_delete_conversation">वार्तालाप हटाने में त्रुटि: %1$s</string>
+    <string name="error_cannot_rename_new">असहेजित वार्तालाप का नाम बदला नहीं जा सकता।</string>
+    <string name="error_title_empty">शीर्षक खाली नहीं हो सकता।</string>
+    <string name="error_rename_conversation">वार्तालाप का नाम बदलने में त्रुटि: %1$s</string>
+    <string name="error_empty_response">AI से खाली प्रतिक्रिया। कृपया पुन: प्रयास करें।</string>
+    <string name="error_timeout">AI को प्रतिक्रिया देने में बहुत अधिक समय लगा। कृपया पुन: प्रयास करें।</string>
+    <string name="error_ai_communication">AI के साथ संचार में त्रुटि: %1$s</string>
+    <string name="error_wait_previous">कृपया पिछली प्रतिक्रिया की प्रतीक्षा करें।</string>
+    <string name="export_error_drive_open">Drive खोलने में त्रुटि: %1$s</string>
+    <string name="export_error_no_google_account">कोई Google खाता नहीं मिला</string>
+    <string name="export_error_drive_setup">Drive सेवा सेट करने में त्रुटि</string>
+    <string name="export_error_drive_permissions">फाइल अनुमतियां सेट करने में त्रुटि</string>
+    <string name="export_error_drive_create">Drive में फाइल बनाने में त्रुटि</string>
+    <string name="export_error_no_messages">निर्यात के लिए कोई संदेश नहीं</string>
+    <string name="export_error_no_content">निर्यात के लिए कोई सामग्री नहीं</string>
+    <string name="export_error_unknown">अज्ञात त्रुटि</string>
+    <string name="export_error_prefix">निर्यात विफल: %1$s</string>
+    <string name="export_error_local_file">स्थानीय फ़ाइल नहीं बनाई जा सकी</string>
+    <string name="export_error_drive_not_init">Google Drive सेवा शुरू नहीं की गई।</string>
+    <string name="export_error_folder_access">फ़ोल्डर बना या एक्सेस नहीं किया जा सका: %1$s</string>
+    <string name="export_error_drive_not_init_log">DriveService शुरू किए बिना वार्तालाप निर्यात करने का प्रयास।</string>
+
+    <!-- 9. UI Components & Common Elements -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="go_back">वापस जाएँ</string>
+    <string name="back">वापस</string>
+    <string name="menu">मेनू</string>
+    <string name="menu_description">मेनू</string>
+    <string name="or">या</string>
+    <string name="save">सहेजें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="delete">हटाएं</string>
+    <string name="scroll_to_top">शीर्ष पर वापस जाएं</string>
+    <string name="loading">लोड हो रहा है...</string>
+    <string name="processing">प्रोसेसिंग...</string>
+    <string name="open_drawer_description">वार्तालाप मेनू खोलें</string>
+    <string name="switch_to_light">लाइट थीम में स्विच करें</string>
+    <string name="switch_to_dark">डार्क थीम में स्विच करें</string>
+    <string name="refresh_status">स्थिति रीफ्रेश करें</string>
+    <string name="collapse">संकुचित करें</string>
+    <string name="expand">विस्तारित करें</string>
+    <string name="try_again">पुनः प्रयास करें</string>
+
+    <!-- 10. Log & Debug Messages -->
+    <string name="log_drive_setup_attempt_null_email">नल या खाली ईमेल के साथ DriveService कॉन्फ़िगर करने का प्रयास।</string>
+    <string name="log_drive_setup_already_configured">DriveService पहले से ही उपयोगकर्ता के लिए कॉन्फ़िगर है: %1$s</string>
+    <string name="log_drive_setup_configuring_for_user">उपयोगकर्ता के लिए DriveService कॉन्फ़िगर कर रहा है: %1$s</string>
+    <string name="log_drive_setup_google_account_issue">\'%1$s\' के लिए Google खाता प्राप्त नहीं कर सका या खाता मेल नहीं खाता। उपयोगकर्ता को ऐप में इस खाते से लॉग इन होना चाहिए और Drive अनुमतियां प्रदान की होनी चाहिए।</string>
+    <string name="log_drive_setup_success_for_user">Drive सेवा सफलतापूर्वक शुरू की गई: %1$s</string>
+    <string name="log_drive_setup_error_for_user">%1$s के लिए Drive सेवा शुरू करने में त्रुटि: %2$s</string>
+    <string name="log_drive_folder_id_not_init">folderId प्राप्त करने का प्रयास करते समय DriveService शुरू नहीं किया गया।</string>
+    <string name="log_drive_folder_id_cache_used">कैश से folderId का उपयोग कर रहा है: %1$s</string>
+    <string name="log_drive_querying_folder">Drive में फ़ोल्डर क्वेरी कर रहा है: %1$s</string>
+    <string name="log_drive_folder_found">फ़ोल्डर \'%1$s\' मिला। ID: %2$s</string>
+    <string name="log_drive_folder_not_found_creating">फ़ोल्डर \'%1$s\' नहीं मिला। बना रहा है...</string>
+    <string name="log_drive_folder_created">नया फ़ोल्डर \'%1$s\' बनाया गया। ID: %2$s</string>
+    <string name="log_drive_folder_io_error">फ़ोल्डर \'%1$s\' को प्राप्त/बनाने में IO त्रुटि: %2$s</string>
+    <string name="log_drive_folder_general_error">फ़ोल्डर \'%1$s\' को प्राप्त/बनाने में सामान्य त्रुटि: %2$s</string>
+    <string name="log_drive_exporting_file_to_folder">फ़ाइल \'%1$s\' को फ़ोल्डर ID \'%2$s\' में निर्यात कर रहा है</string>
+    <string name="log_drive_file_exported_with_id">फ़ाइल \'%1$s\' ID के साथ निर्यात की गई: %2$s। देखने का लिंक: %3$s</string>
+    <string name="log_drive_export_error">वार्तालाप \'%1$s\' निर्यात करने में त्रुटि: %2$s</string>
+    <string name="export_log_drive_setup_success">Drive सेवा सफलतापूर्वक सेटअप की गई</string>
+    <string name="export_log_start">वार्तालाप के लिए निर्यात शुरू: %1$s, शीर्षक: %2$s</string>
+    <string name="export_log_filename">तैयार फ़ाइल नाम: %1$s</string>
+    <string name="export_log_drive_create">Google Drive में फ़ाइल बना रहा है: %1$s</string>
+    <string name="export_log_drive_created">Drive में ID के साथ फ़ाइल बनाई गई: %1$s</string>
+    <string name="export_log_drive_permissions">फ़ाइल के लिए अनुमतियां सेट की गईं: %1$s</string>
+    <string name="export_log_local_export">स्थानीय स्टोरेज में निर्यात कर रहा है: %1$s</string>
+    <string name="export_log_local_saved">फ़ाइल स्थानीय स्टोरेज में सहेजी गई: %1$s</string>
+    <string name="export_log_content_size">फॉर्मेटेड सामग्री: %1$d अक्षर</string>
+
+    <!-- 11. Forgot password and rename conversations -->
+    <string name="password_reset_screen_title">पासवर्ड रीसेट करें</string>
+    <string name="password_reset_instructions_en">पासवर्ड रीसेट निर्देश प्राप्त करने के लिए अपना ईमेल दर्ज करें</string>
+    <string name="email_required_error">कृपया अपना ईमेल दर्ज करें</string>
+    <string name="send_email_button">ईमेल भेजें</string>
+    <string name="back_to_login_button">लॉगिन पर वापस जाएं</string>
+    <string name="rename_conversation_dialog_title_pt">वार्तालाप का नाम बदलें</string>
+    <string name="new_name_label">नया नाम</string>
+    <string name="save_button_pt">सहेजें</string>
+    <string name="cancel_button_pt">रद्द करें</string>
+    <string name="password_reset_success_en">पासवर्ड रीसेट ईमेल सफलतापूर्वक भेजा गया!</string>
+    <string name="loading_state">लोड हो रहा है...</string>
+    <string name="password_reset_success_pt">पासवर्ड रीसेट ईमेल सफलतापूर्वक भेजा गया!</string>
+    <string name="password_reset_instructions_pt">पासवर्ड रीसेट निर्देश प्राप्त करने के लिए अपना ईमेल दर्ज करें</string>
+
+    <!-- 12. Payment Screen Additional Strings -->
+    <string name="payment_screen_title">अपनी योजना चुनें</string>
+    <string name="premium_app_title">प्रीमियम स्टॉर्मचैट</string>
+    <string name="price_unavailable">कीमत अनुपलब्ध</string>
+    <string name="price_format">%1$s%2$s</string>
+    <string name="per_month">/माह</string>
+    <string name="per_year">/वर्ष</string>
+    <string name="feature_premium_models">प्रीमियम मॉडल तक पहुंच</string>
+    <string name="feature_conversation_export">वार्तालाप निर्यात</string>
+    <string name="feature_priority_support">प्राथमिकता समर्थन</string>
+    <string name="feature_lifetime_access">प्रीमियम मॉडल तक आजीवन पहुंच</string>
+    <string name="feature_unlimited_export">असीमित वार्तालाप निर्यात</string>
+    <string name="feature_no_recurring_fee">कोई मासिक या वार्षिक शुल्क नहीं</string>
+    <string name="purchase_error">खरीदारी शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।</string>
+    <string name="processing_payment">भुगतान प्रक्रिया जारी...</string>
+    <string name="select_plan">योजना चुनें</string>
+
+    <!-- 13. Image generation strings -->
+    <string name="generate_image">छवि बनाएं</string>
+    <string name="image_prompt">आप जो छवि चाहते हैं उसका वर्णन करें...</string>
+    <string name="quality">गुणवत्ता</string>
+    <string name="transparent_background">पारदर्शी पृष्ठभूमि</string>
+    <string name="image_generated_successfully">छवि सफलतापूर्वक बनाई गई!</string>
+    <string name="generate">बनाएं</string>
+    <string name="generate_image_description">छवि बनाएं</string>
+    <string name="error_prompt_required_after_command">कृपया %1$s कमांड के बाद छवि का विवरण प्रदान करें।</string>
+    <string name="generated_image_description">छवि विवरण</string>
+    <string name="error_file_not_found_for_saving">सहेजने के लिए फ़ाइल नहीं मिली।</string>
+    <string name="error_saving_image_generic">छवि सहेजने में त्रुटि।</string>
+    <string name="image_saved_to_gallery">छवि %1$s में सहेजी गई</string>
+    <string name="save_image">छवि सहेजें</string>
+    <string name="image_save_permission_denied">छवि सहेजने की अनुमति अस्वीकृत।</string>
+    <string name="request_save_permission">छवियों को सहेजने के लिए, ऐप को आपकी फ़ाइलों तक पहुंचने की अनुमति की आवश्यकता है। कृपया ऐप सेटिंग्स में अनुमति प्रदान करें।</string>
+    <string name="permission_required">अनुमति आवश्यक है</string>
+
+    <!-- 14. File uploads -->
+    <string name="attach_file">फ़ाइल संलग्न करें</string>
+    <string name="remove_attachment">अटैचमेंट हटाएं</string>
+    <string name="send_with_attachment">अटैचमेंट के साथ भेजें</string>
+    <string name="file_uploaded">फ़ाइल सफलतापूर्वक अपलोड की गई</string>
+    <string name="file_not_found">फ़ाइल नहीं मिली</string>
+    <string name="no_app_to_open_file">इस फ़ाइल प्रकार को खोलने के लिए कोई एप्लिकेशन नहीं मिला</string>
+    <string name="error_opening_file">फ़ाइल खोलने में त्रुटि</string>
+    <string name="message_with_attachment_hint">संदर्भ जोड़ें</string>
+
+    <string name="upgrade_to_premium">प्रीमियम में अपग्रेड करें</string>
+
+</resources>
