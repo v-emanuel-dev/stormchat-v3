@@ -149,16 +149,16 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
         // Google Gemini
         AIModel(
-            id = "gemini-2.5-pro",
+            id = "gemini-2.5-pro-preview-05-06",
             displayName = "Gemini 2.5 Pro",
-            apiEndpoint = "gemini-2.5-pro-exp-03-25",
+            apiEndpoint = "gemini-2.5-pro-preview-05-06",
             provider = AIProvider.GOOGLE,
             isPremium = true
         ),
         AIModel(
-            id = "gemini-2.5-flash",
+            id = "gemini-2.5-flash-preview-05-20",
             displayName = "Gemini 2.5 Flash",
-            apiEndpoint = "gemini-2.5-flash-preview-04-17",
+            apiEndpoint = "gemini-2.5-flash-preview-05-20",
             provider = AIProvider.GOOGLE,
             isPremium = false
         ),
@@ -237,10 +237,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     private val defaultModel = AIModel(
-        id = "gpt-4.1-mini",
-        displayName = "GPT-4.1 Mini",
-        apiEndpoint = "gpt-4.1-mini",
-        provider = AIProvider.OPENAI,
+        id = "gemini-2.5-flash-preview-05-20",
+        displayName = "Gemini 2.5 Flash",
+        apiEndpoint = "gemini-2.5-flash-preview-05-20",
+        provider = AIProvider.GOOGLE,
         isPremium = false
     )
 
@@ -604,7 +604,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (model.isPremium && !_isPremiumUser.value) {
             _errorMessage.value = context.getString(R.string.error_premium_required)
 
-            val defaultModel = availableModels.find { it.id == "gpt-4.1-mini" } ?: defaultModel
+            val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
 
             // Force model update with more aggressive approach
             viewModelScope.launch {
@@ -969,7 +969,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (!isPremium && _selectedModel.value.isPremium) {
             // Non-premium user using premium model
             // Return to default model
-            val defaultModel = availableModels.find { it.id == "gpt-4.1-mini" } ?: defaultModel
+            val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
 
             viewModelScope.launch {
                 try {
@@ -1100,7 +1100,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                                 Log.i("ChatViewModel", "Loaded user model preference: ${savedModel.displayName}")
                             } else {
                                 // User is not premium but trying to use a premium model
-                                val defaultModel = availableModels.find { it.id == "gpt-4.1-mini" } ?: defaultModel
+                                val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
                                 _selectedModel.value = defaultModel
                                 Log.i("ChatViewModel", "User is not premium. Reverting to default model: ${defaultModel.displayName}")
 
@@ -1881,11 +1881,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         Log.w("ChatViewModel", "Timeout with model ${currentModel.id}")
 
                         // Caso de timeout com OpenAI, tentar modelo de backup
-                        if (currentModel.provider == AIProvider.OPENAI && currentModel.id != "gpt-4.1-minii") {
+                        if (currentModel.provider == AIProvider.OPENAI && currentModel.id != "gemini-2.5-flash-preview-05-20") {
                             responseText.clear()
-                            Log.w("ChatViewModel", "Using backup model (GPT 4.1 Mini)")
+                            Log.w("ChatViewModel", "Using backup model (Gemini )")
 
-                            val backupModel = availableModels.first { it.id == "gpt-4.1-mini" }
+                            val backupModel = availableModels.first { it.id == "gemini-2.5-flash-preview-05-20" }
                             modelUsed = backupModel
 
                             val backupResult = withTimeoutOrNull(60000) {

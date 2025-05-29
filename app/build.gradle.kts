@@ -38,8 +38,8 @@ android {
         applicationId = "com.ivip.brainstormia"
         minSdk = 26
         targetSdk = 35
-        versionCode = 97
-        versionName = "9.7"
+        versionCode = 98
+        versionName = "9.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val apiKeyOpenaiFromProperties = localProperties.getProperty("apiKeyOpenai") ?: ""
