@@ -133,9 +133,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             isPremium = true
         ),
         AIModel(
-            id = "claude-3-7-sonnet-20250219",
+            id = "claude-3-7-sonnet-latest",
             displayName = "Claude 3.7 Sonnet",
-            apiEndpoint = "claude-3-7-sonnet-20250219",
+            apiEndpoint = "claude-3-7-sonnet-latest",
             provider = AIProvider.ANTHROPIC,
             isPremium = true
         ),

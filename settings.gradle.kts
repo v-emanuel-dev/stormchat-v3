@@ -1,3 +1,11 @@
+// ============================================================================
+// SETTINGS.GRADLE.KTS - BRAINSTORMIA v9.9
+// ============================================================================
+// 📁 Arquivo: settings.gradle.kts
+// 🎯 Objetivo: Configuração de repositórios e módulos
+// 🔄 Atualizado: 2025-05-29
+// ============================================================================
+
 pluginManagement {
     repositories {
         google {
@@ -11,6 +19,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -22,4 +31,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "StormChat"
 include(":app")
- 

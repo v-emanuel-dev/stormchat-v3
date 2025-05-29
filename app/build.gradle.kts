@@ -38,8 +38,8 @@ android {
         applicationId = "com.ivip.brainstormia"
         minSdk = 26
         targetSdk = 35
-        versionCode = 98
-        versionName = "9.8"
+        versionCode = 99
+        versionName = "9.9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val apiKeyOpenaiFromProperties = localProperties.getProperty("apiKeyOpenai") ?: ""
@@ -60,16 +60,34 @@ android {
         buildConfigField("String", "OPENAI_API_KEY", "\"${apiKeyOpenaiFromProperties}\"")
         buildConfigField("String", "GOOGLE_API_KEY", "\"${apiKeyGoogleFromProperties}\"")
         buildConfigField("String", "ANTHROPIC_API_KEY", "\"${apiKeyAnthropicFromProperties}\"")
+
+        // Multidex
+        multiDexEnabled = true
     }
+
+    // ============================================================================
+    // CONFIGURAÇÃO DE BUILD TYPES COM MINIFICAÇÃO CONSERVADORA
+    // ============================================================================
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Configurações adicionais de release
+            isDebuggable = false
+            isJniDebuggable = false
         }
-        debug {}
+
+        debug {
+            // Debug sempre sem minificação para desenvolvimento
+            isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = true
+        }
     }
 
     compileOptions {
@@ -86,7 +104,11 @@ android {
         buildConfig = true
     }
 
-    // Adicionar bloco de packaging para resolver conflitos META-INF
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
+
+    // Configuração de packaging para resolver conflitos META-INF
     packaging {
         resources {
             excludes.add("META-INF/DEPENDENCIES")
@@ -98,6 +120,8 @@ android {
             excludes.add("META-INF/notice.txt")
             excludes.add("META-INF/ASL2.0")
             excludes.add("META-INF/*.kotlin_module")
+            excludes.add("META-INF/INDEX.LIST")
+            excludes.add("META-INF/io.netty.versions.properties")
 
             pickFirsts.add("mozilla/public-suffix-list.txt")
         }
@@ -137,12 +161,12 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")   // se realmente usa
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     /* ---------- Google Sign‑In ---------- */
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
-    /* ---------- Google Drive (se necessário) ---------- */
+    /* ---------- Google Drive ---------- */
     implementation("com.google.api-client:google-api-client-android:2.2.0") {
         exclude(group = "org.apache.httpcomponents", module = "httpclient")
     }
@@ -150,42 +174,57 @@ dependencies {
     implementation("com.google.auth:google-auth-library-oauth2-http:1.20.0")
     implementation("com.google.http-client:google-http-client-gson:1.43.3")
 
-    /* ---------- Terceiros ---------- */
+    /* ---------- Networking ---------- */
     implementation("io.ktor:ktor-client-content-negotiation:2.3.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.3")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.json:json:20210307")
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
-    implementation("io.noties.markwon:core:4.6.2")
-    implementation("io.noties.markwon:html:4.6.2")
-    implementation("io.noties.markwon:linkify:4.6.2")
-    implementation("io.coil-kt:coil-compose:2.2.2")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation ("io.noties.markwon:image:4.6.2")
-    implementation ("io.coil-kt:coil-compose:2.4.0")
-    implementation("com.aallam.openai:openai-client:3.6.2")
     implementation("io.ktor:ktor-client-android:2.3.7")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    implementation ("org.apache.pdfbox:pdfbox:2.0.27")
-    implementation ("com.tom-roush:pdfbox-android:2.0.27.0")
-    implementation ("org.apache.poi:poi:5.2.3")
-    implementation ("org.apache.poi:poi-ooxml:5.2.3")
-    implementation ("androidx.multidex:multidex:2.0.1")
-    implementation ("com.google.mlkit:image-labeling:17.0.9")
+    /* ---------- JSON & Serialization ---------- */
+    implementation("org.json:json:20210307")
+    implementation("com.google.code.gson:gson:2.10.1")
 
-    /* ---------- Generative AI (Google) ---------- */
-    implementation(libs.generativeai)
+    /* ---------- Billing ---------- */
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
-    /* ---------- HTTP client unificado (se realmente precisa) ---------- */
+    /* ---------- UI & Markdown ---------- */
+    implementation("io.noties.markwon:core:4.6.2")
+    implementation("io.noties.markwon:html:4.6.2")
+    implementation("io.noties.markwon:linkify:4.6.2")
+    implementation("io.noties.markwon:image:4.6.2")
+
+    /* ---------- Image Loading ---------- */
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    /* ---------- Work Manager ---------- */
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    /* ---------- AI APIs ---------- */
+    implementation("com.aallam.openai:openai-client:3.6.2")
+    implementation(libs.generativeai) // Google Generative AI
+
+    /* ---------- Document Processing ---------- */
+    implementation("org.apache.pdfbox:pdfbox:2.0.27")
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+
+    /* ---------- ML Kit ---------- */
+    implementation("com.google.mlkit:image-labeling:17.0.9")
+
+    /* ---------- Multidex ---------- */
+    implementation("androidx.multidex:multidex:2.0.1")
+
+    /* ---------- HTTP Components (Unificado) ---------- */
     implementation("org.apache.httpcomponents:httpclient:4.5.14") {
         exclude(group = "org.apache.httpcomponents", module = "httpcore")
     }
     implementation("org.apache.httpcomponents:httpcore:4.4.16")
 
-    implementation ("androidx.datastore:datastore-preferences:1.1.6")
+    /* ---------- DataStore ---------- */
+    implementation("androidx.datastore:datastore-preferences:1.1.6")
 
     /* ---------- Tests ---------- */
     testImplementation(libs.junit)
