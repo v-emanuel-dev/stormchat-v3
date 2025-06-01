@@ -60,6 +60,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import com.ivip.brainstormia.api.ApiClient
+import com.ivip.brainstormia.auth.TokenManager
+import kotlinx.coroutines.tasks.await
+import com.ivip.brainstormia.api.ValidationResponse
+import kotlinx.coroutines.tasks.await
 
 enum class LoadingState { IDLE, LOADING, ERROR }
 
@@ -80,6 +85,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val metadataDao: ConversationMetadataDao = appDb.conversationMetadataDao()
     private val modelPreferenceDao: ModelPreferenceDao = appDb.modelPreferenceDao()
     private val context = application.applicationContext
+
+    private val apiClient = ApiClient()
+    private val tokenManager = TokenManager(application.applicationContext)
 
     // Image generation manager
     private val imageGenerationManager = ImageGenerationManager(application)
@@ -256,6 +264,194 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     val currentImagePrompt: StateFlow<String?> = _currentImagePrompt.asStateFlow()
 
     private val fileProcessingManager = FileProcessingManager(getApplication<Application>().applicationContext)
+
+    private val _userPlanType = MutableStateFlow<String?>(null)
+    val userPlanType: StateFlow<String?> = _userPlanType.asStateFlow()
+
+    // Backend integration - ADICIONAR ESTAS PROPRIEDADES
+    fun checkPremiumStatusWithBackend() {
+        val startTime = System.currentTimeMillis()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        // ✅ LOGS BACKEND - INÍCIO DA VERIFICAÇÃO
+        Log.d("backend", "=== VERIFICAÇÃO PREMIUM BACKEND ===")
+        Log.d("backend", "Timestamp: $startTime")
+        Log.d("backend", "Thread: ${Thread.currentThread().name}")
+        Log.d("backend", "User ID: \"${currentUser?.uid}\"")
+        Log.d("backend", "User Email: \"${currentUser?.email}\"")
+        Log.d("backend", "Display Name: \"${currentUser?.displayName}\"")
+        Log.d("backend", "Is Anonymous: ${currentUser?.isAnonymous}")
+        Log.d("backend", "Provider Data: ${currentUser?.providerData?.map { it.providerId }}")
+        Log.d("backend", "===================================")
+
+        viewModelScope.launch {
+            try {
+                Log.d("backend", "🔍 OBTENDO TOKEN JWT...")
+
+                // Obter token JWT do usuário atual
+                val userToken = tokenManager.getValidToken()
+
+                if (userToken == null) {
+                    Log.e("backend", "❌ TOKEN JWT NULO")
+                    Log.d("backend", "Possíveis causas:")
+                    Log.d("backend", "- Usuário não autenticado")
+                    Log.d("backend", "- Falha na renovação do token")
+                    Log.d("backend", "- Erro no Firebase Auth")
+                    Log.d("backend", "- Problema de conectividade")
+
+                    _isPremiumUser.value = false
+
+                    val endTime = System.currentTimeMillis()
+                    Log.d("backend", "Verificação backend falhou em ${endTime - startTime}ms")
+                    return@launch
+                }
+
+                // ✅ LOGS BACKEND - TOKEN OBTIDO
+                Log.d("backend", "=== TOKEN JWT OBTIDO ===")
+                Log.d("backend", "Token length: ${userToken.length}")
+                Log.d("backend", "Token prefix: \"${userToken.take(50)}...\"")
+                Log.d("backend", "Token válido: ${userToken.isNotEmpty()}")
+                Log.d("backend", "Preparando chamada para backend...")
+                Log.d("backend", "========================")
+
+                // ✅ LOGS BACKEND - ANTES DA CHAMADA API
+                Log.d("backend", "=== CHAMADA PARA BACKEND ===")
+                Log.d("backend", "Endpoint: validatePremiumStatus")
+                Log.d("backend", "Method: POST")
+                Log.d("backend", "Authorization: Bearer ${userToken.take(20)}...")
+                Log.d("backend", "Content-Type: application/json")
+                Log.d("backend", "User-Agent: BrainstormiaApp/1.0 Android")
+                Log.d("backend", "Timeout: 10s")
+                Log.d("backend", "============================")
+
+                // Chamar backend para validar
+                val validationResponse = apiClient.validatePremiumStatus(userToken)
+
+                val endTime = System.currentTimeMillis()
+                val duration = endTime - startTime
+
+                // ✅ LOGS BACKEND - RESPOSTA COMPLETA
+                Log.d("backend", "=== RESPOSTA DO BACKEND ===")
+                Log.d("backend", "Duração total: ${duration}ms")
+                Log.d("backend", "Has Access: ${validationResponse.hasAccess}")
+                Log.d("backend", "Subscription Type: \"${validationResponse.subscriptionType}\"")
+                Log.d("backend", "Expiration Date: \"${validationResponse.expirationDate}\"")
+                Log.d("backend", "User ID: \"${validationResponse.userId}\"")
+                Log.d("backend", "Validated At: ${validationResponse.validatedAt}")
+                Log.d("backend", "Error Code: ${validationResponse.errorCode}")
+                Log.d("backend", "Error Message: \"${validationResponse.errorMessage}\"")
+                Log.d("backend", "Reasons: ${validationResponse.reasons}")
+                Log.d("backend", "===========================")
+
+                // ✅ LOGS BACKEND - ANÁLISE DA RESPOSTA
+                if (validationResponse.hasAccess) {
+                    Log.d("backend", "✅ ACESSO PREMIUM CONFIRMADO")
+                    Log.d("backend", "Tipo de assinatura: \"${validationResponse.subscriptionType}\"")
+                    Log.d("backend", "Data de expiração: \"${validationResponse.expirationDate}\"")
+                } else {
+                    Log.d("backend", "❌ ACESSO PREMIUM NEGADO")
+                    Log.d("backend", "Código de erro: ${validationResponse.errorCode}")
+                    Log.d("backend", "Mensagem de erro: \"${validationResponse.errorMessage}\"")
+
+                    if (validationResponse.reasons.isNotEmpty()) {
+                        Log.d("backend", "=== RAZÕES DE NEGAÇÃO ===")
+                        validationResponse.reasons.forEach { (reason, value) ->
+                            if (value) {
+                                Log.d("backend", "- $reason: $value")
+                            }
+                        }
+                        Log.d("backend", "========================")
+                    }
+                }
+
+                // Atualizar estado baseado na resposta do backend
+                withContext(Dispatchers.Main) {
+                    // ✅ LOGS BACKEND - ATUALIZANDO ESTADO LOCAL
+                    Log.d("backend", "=== ATUALIZANDO ESTADO LOCAL ===")
+                    Log.d("backend", "Estado anterior - Premium: ${_isPremiumUser.value}")
+                    Log.d("backend", "Estado anterior - Plano: \"${_userPlanType.value}\"")
+
+                    _isPremiumUser.value = validationResponse.hasAccess
+
+                    if (validationResponse.hasAccess) {
+                        // Mapear tipo de assinatura do backend para formato local
+                        val localPlanType = when (validationResponse.subscriptionType?.lowercase()) {
+                            "monthly" -> "Monthly plan"
+                            "annual" -> "Annual Plan"
+                            "lifetime" -> "Lifetime"
+                            else -> validationResponse.subscriptionType
+                        }
+                        _userPlanType.value = localPlanType
+
+                        Log.d("backend", "✅ ESTADO ATUALIZADO PARA PREMIUM")
+                        Log.d("backend", "Novo plano: \"$localPlanType\"")
+                        Log.d("backend", "Mapeamento: \"${validationResponse.subscriptionType}\" → \"$localPlanType\"")
+
+                        Log.i("ChatViewModel", "✅ Backend confirmou: Premium=true, Plano=$localPlanType")
+                    } else {
+                        _userPlanType.value = null
+
+                        Log.d("backend", "❌ ESTADO MANTIDO COMO NÃO PREMIUM")
+                        Log.d("backend", "Plano removido: null")
+
+                        Log.i("ChatViewModel", "❌ Backend negou acesso premium")
+                    }
+
+                    Log.d("backend", "Estado final - Premium: ${_isPremiumUser.value}")
+                    Log.d("backend", "Estado final - Plano: \"${_userPlanType.value}\"")
+                    Log.d("backend", "================================")
+
+                    // ✅ LOGS BACKEND - VALIDANDO MODELO ATUAL
+                    Log.d("backend", "=== VALIDANDO MODELO ATUAL ===")
+                    Log.d("backend", "Modelo atual: \"${_selectedModel.value.displayName}\"")
+                    Log.d("backend", "Modelo é premium: ${_selectedModel.value.isPremium}")
+                    Log.d("backend", "Usuário tem acesso: ${validationResponse.hasAccess}")
+
+                    // Validar modelo atual baseado no resultado
+                    validateCurrentModel(validationResponse.hasAccess)
+
+                    Log.d("backend", "Modelo pós-validação: \"${_selectedModel.value.displayName}\"")
+                    Log.d("backend", "==============================")
+                }
+
+                // ✅ LOGS BACKEND - SUCESSO COMPLETO
+                Log.d("backend", "=== VERIFICAÇÃO BACKEND COMPLETA ===")
+                Log.d("backend", "Status: SUCESSO")
+                Log.d("backend", "Duração total: ${duration}ms")
+                Log.d("backend", "Premium access: ${validationResponse.hasAccess}")
+                Log.d("backend", "Timestamp final: ${System.currentTimeMillis()}")
+                Log.d("backend", "===================================")
+
+            } catch (e: Exception) {
+                val endTime = System.currentTimeMillis()
+                val duration = endTime - startTime
+
+                Log.e("backend", "❌ ERRO NA VERIFICAÇÃO BACKEND: ${e.message}", e)
+
+                // ✅ LOGS BACKEND - DETALHES DO ERRO
+                Log.d("backend", "=== ERRO DETALHADO ===")
+                Log.d("backend", "Tipo: ${e.javaClass.simpleName}")
+                Log.d("backend", "Mensagem: \"${e.message}\"")
+                Log.d("backend", "Causa: \"${e.cause?.message}\"")
+                Log.d("backend", "Stack trace: ${e.stackTrace.take(3).joinToString()}")
+                Log.d("backend", "Duração até erro: ${duration}ms")
+                Log.d("backend", "======================")
+
+                withContext(Dispatchers.Main) {
+                    // ✅ LOGS BACKEND - FALLBACK
+                    Log.d("backend", "=== INICIANDO FALLBACK ===")
+                    Log.d("backend", "Motivo: Erro na verificação backend")
+                    Log.d("backend", "Fallback: Método local (BillingViewModel)")
+                    Log.d("backend", "Timestamp: ${System.currentTimeMillis()}")
+                    Log.d("backend", "==========================")
+
+                    // Em caso de erro, usar fallback para método local
+                    Log.w("ChatViewModel", "Falha na verificação backend, usando método local")
+                    checkIfUserIsPremium() // Fallback para método original
+                }
+            }
+        }
+    }
 
     /**
      * Processa o upload de um arquivo
@@ -580,9 +776,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Obtém o tipo MIME de um arquivo com base em sua extensão
-     */
     private fun getMimeType(fileName: String): String? {
         val extension = fileName.substringAfterLast('.', "")
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
@@ -826,72 +1019,40 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // Function to check if user is premium via BillingViewModel singleton
     fun checkIfUserIsPremium() {
         val currentUser = FirebaseAuth.getInstance().currentUser
-        val currentUserId = currentUser?.uid
-        val email = currentUser?.email
 
-        if (email.isNullOrBlank()) {
-            Log.e("ChatViewModel", "Cannot check premium status: No logged in user or email")
+        if (currentUser == null) {
+            Log.e("ChatViewModel", "Usuário não autenticado")
             _isPremiumUser.value = false
             validateCurrentModel(false)
             return
         }
 
-        // Verificar a última vez que verificamos e se o usuário mudou
-        val lastCheck = System.currentTimeMillis() - lastPremiumCheck
+        Log.d("ChatViewModel", "🔍 Verificando status premium via backend...")
 
-        // MODIFICAÇÃO: Verificar com mais frequência se o status ainda não foi determinado
-        // ou se estamos forçando uma verificação
-        val shouldSkipCheck = lastCheck < 5000 &&
-                lastCheckedUserId == currentUserId &&
-                !forceNextCheck &&
-                _isPremiumUser.value // Já sabemos que é premium
-
-        if (shouldSkipCheck) {
-            Log.d("ChatViewModel", "Verificação premium recente para o mesmo usuário premium ($currentUserId). Pulando.")
-            return
-        }
-
-        // Atualizar o timestamp e usuário da última verificação
-        lastPremiumCheck = System.currentTimeMillis()
-        lastCheckedUserId = currentUserId
-
-        Log.d("ChatViewModel", "Verificando status premium para usuário: $currentUserId (força: $forceNextCheck)")
-
-        // Get singleton BillingViewModel through application
         viewModelScope.launch {
             try {
-                // Get the BillingViewModel singleton through the application
-                val app = getApplication<Application>() as BrainstormiaApplication
-                val billingViewModel = app.billingViewModel
+                // Sempre tentar backend primeiro
+                val tokenResult = currentUser.getIdToken(false).await()
+                val userToken = tokenResult.token
 
-                // Observe premium status changes from BillingViewModel
-                launch {
-                    billingViewModel.isPremiumUser.collect { isPremiumFromBilling ->
-                        // Update our state based on BillingViewModel result
-                        Log.d("ChatViewModel", "BillingViewModel reported premium status: $isPremiumFromBilling")
-                        _isPremiumUser.value = isPremiumFromBilling
-                        validateCurrentModel(isPremiumFromBilling)
-                    }
-                }
+                if (userToken != null) {
+                    val response = apiClient.validatePremiumStatus(userToken)
 
-                // Force check in BillingViewModel
-                Log.d("ChatViewModel", "Forcing check with BillingViewModel (high priority: $forceNextCheck)")
-                if (forceNextCheck) {
-                    billingViewModel.forceRefreshPremiumStatus(highPriority = true)
-                    forceNextCheck = false
+                    withContext(Dispatchers.Main) {
+                        _isPremiumUser.value = response.hasAccess
+                        _userPlanType.value = response.subscriptionType
+                        validateCurrentModel(response.hasAccess)
 
-                    // NOVO: Programa uma segunda verificação após um curto intervalo
-                    launch {
-                        delay(2000)  // 2 segundos depois
-                        Log.d("ChatViewModel", "Executando verificação premium secundária")
-                        billingViewModel.checkUserSubscription()
+                        Log.i("ChatViewModel", "✅ Backend: Premium=${response.hasAccess}, Plano=${response.subscriptionType}")
                     }
                 } else {
-                    billingViewModel.checkUserSubscription()
+                    // Fallback para método local se não conseguir token
+                    checkIfUserIsPremiumLocal()
                 }
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error checking premium with BillingViewModel", e)
-                // Restante do código de fallback...
+                Log.e("ChatViewModel", "❌ Erro na verificação backend, usando fallback local: ${e.message}")
+                // Fallback para método local
+                checkIfUserIsPremiumLocal()
             }
         }
     }
@@ -960,6 +1121,185 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error saving image to gallery: ${e.message}", e)
                 _imageSavedEvent.emit(context.getString(R.string.error_saving_image_generic))
+            }
+        }
+    }
+
+    private fun checkIfUserIsPremiumWithBackend() {
+        viewModelScope.launch {
+            try {
+                val userToken = tokenManager.getValidToken()
+                if (userToken == null) {
+                    _isPremiumUser.value = false
+                    return@launch
+                }
+
+                val response = apiClient.validatePremiumStatus(userToken)
+
+                withContext(Dispatchers.Main) {
+                    _isPremiumUser.value = response.hasAccess
+                    _userPlanType.value = response.subscriptionType
+
+                    Log.i("ChatViewModel", "Backend confirmou: Premium=${response.hasAccess}")
+                }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Erro verificação backend: ${e.message}")
+                // Fallback para método local em caso de erro
+                checkIfUserIsPremiumLocal()
+            }
+        }
+    }
+
+    // Usar o novo endpoint de validação
+    private suspend fun validateWithBackend(): ValidationResponse {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        return try {
+            // ✅ CORREÇÃO: Acessar .token da GetTokenResult
+            val tokenResult = currentUser?.getIdToken(false)?.await()
+            val token = tokenResult?.token
+
+            if (token != null) {
+                apiClient.validatePremiumStatus(token)
+            } else {
+                ValidationResponse(
+                    hasAccess = false,
+                    subscriptionType = null,
+                    expirationDate = null,
+                    reasons = mapOf("noToken" to true),
+                    errorMessage = "No authentication token available"
+                )
+            }
+        } catch (e: Exception) {
+            ValidationResponse(
+                hasAccess = false,
+                subscriptionType = null,
+                expirationDate = null,
+                reasons = mapOf("error" to true),
+                errorMessage = e.message ?: "Unknown error"
+            )
+        }
+    }
+
+    /**
+     * ✅ 4. NOVA FUNÇÃO: Verificação local (método original) - ADICIONAR ESTA FUNÇÃO
+     */
+    private fun checkIfUserIsPremiumLocal() {
+        val startTime = System.currentTimeMillis()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        // ✅ LOGS BACKEND - INÍCIO VERIFICAÇÃO LOCAL
+        Log.d("backend", "=== VERIFICAÇÃO PREMIUM LOCAL ===")
+        Log.d("backend", "Timestamp: $startTime")
+        Log.d("backend", "Motivo: Fallback ou configuração")
+        Log.d("backend", "User ID: \"${currentUser?.uid}\"")
+        Log.d("backend", "User Email: \"${currentUser?.email}\"")
+        Log.d("backend", "=================================")
+
+        // Verificar a última vez que verificamos e se o usuário mudou
+        val lastCheck = System.currentTimeMillis() - lastPremiumCheck
+        val shouldSkipCheck = lastCheck < 5000 &&
+                lastCheckedUserId == FirebaseAuth.getInstance().currentUser?.uid &&
+                !forceNextCheck &&
+                _isPremiumUser.value
+
+        // ✅ LOGS BACKEND - CACHE LOCAL
+        Log.d("backend", "=== CACHE VERIFICAÇÃO LOCAL ===")
+        Log.d("backend", "Última verificação: $lastPremiumCheck")
+        Log.d("backend", "Tempo desde última: ${lastCheck}ms")
+        Log.d("backend", "Último user ID: \"$lastCheckedUserId\"")
+        Log.d("backend", "Current user ID: \"${currentUser?.uid}\"")
+        Log.d("backend", "Force next check: $forceNextCheck")
+        Log.d("backend", "Current premium: ${_isPremiumUser.value}")
+        Log.d("backend", "Should skip: $shouldSkipCheck")
+        Log.d("backend", "==============================")
+
+        if (shouldSkipCheck) {
+            Log.d("ChatViewModel", "Verificação premium local recente. Pulando.")
+            Log.d("backend", "✅ USANDO CACHE LOCAL (verificação recente)")
+            return
+        }
+
+        // ✅ LOGS BACKEND - NOVA VERIFICAÇÃO LOCAL
+        Log.d("backend", "=== NOVA VERIFICAÇÃO LOCAL ===")
+        Log.d("backend", "Cache invalidado ou expirado")
+        Log.d("backend", "Atualizando timestamps...")
+
+        // Atualizar o timestamp e usuário da última verificação
+        lastPremiumCheck = System.currentTimeMillis()
+        lastCheckedUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+        Log.d("backend", "Novo timestamp: $lastPremiumCheck")
+        Log.d("backend", "Novo user ID: \"$lastCheckedUserId\"")
+        Log.d("backend", "=============================")
+
+        Log.d("ChatViewModel", "Verificando status premium LOCAL para usuário: $lastCheckedUserId")
+
+        // Get singleton BillingViewModel through application
+        viewModelScope.launch {
+            try {
+                val app = getApplication<Application>() as BrainstormiaApplication
+                val billingViewModel = app.billingViewModel
+
+                // ✅ LOGS BACKEND - BILLING VIEW MODEL
+                Log.d("backend", "=== BILLING VIEW MODEL ===")
+                Log.d("backend", "BillingViewModel obtido: ${billingViewModel != null}")
+                Log.d("backend", "Estado atual premium: ${billingViewModel.isPremiumUser.value}")
+                Log.d("backend", "Plano atual: \"${billingViewModel.userPlanType.value}\"")
+                Log.d("backend", "Loading state: ${billingViewModel.isPremiumLoading.value}")
+                Log.d("backend", "==========================")
+
+                // Observe premium status changes from BillingViewModel
+                launch {
+                    billingViewModel.isPremiumUser.collect { isPremiumFromBilling ->
+                        Log.d("ChatViewModel", "BillingViewModel reported premium status: $isPremiumFromBilling")
+
+                        // ✅ LOGS BACKEND - STATUS CHANGE
+                        Log.d("backend", "=== STATUS CHANGE FROM BILLING ===")
+                        Log.d("backend", "Previous: ${_isPremiumUser.value}")
+                        Log.d("backend", "New: $isPremiumFromBilling")
+                        Log.d("backend", "Timestamp: ${System.currentTimeMillis()}")
+                        Log.d("backend", "=================================")
+
+                        _isPremiumUser.value = isPremiumFromBilling
+                        validateCurrentModel(isPremiumFromBilling)
+                    }
+                }
+
+                // ✅ LOGS BACKEND - FORCE CHECK DECISION
+                if (forceNextCheck) {
+                    Log.d("backend", "=== FORCE CHECK SOLICITADO ===")
+                    Log.d("backend", "Priority: HIGH")
+                    Log.d("backend", "Reason: Force flag ativo")
+                    Log.d("backend", "=============================")
+
+                    billingViewModel.forceRefreshPremiumStatus(highPriority = true)
+                    forceNextCheck = false
+
+                    launch {
+                        delay(2000)
+                        Log.d("backend", "🔄 Segunda verificação após force check...")
+                        billingViewModel.checkUserSubscription()
+                    }
+                } else {
+                    Log.d("backend", "=== CHECK NORMAL ===")
+                    Log.d("backend", "Type: NORMAL")
+                    Log.d("backend", "Method: checkUserSubscription")
+                    Log.d("backend", "===================")
+
+                    billingViewModel.checkUserSubscription()
+                }
+
+                val endTime = System.currentTimeMillis()
+                Log.d("backend", "Verificação local completada em ${endTime - startTime}ms")
+
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error checking premium with BillingViewModel", e)
+
+                val endTime = System.currentTimeMillis()
+                Log.d("backend", "❌ ERRO NA VERIFICAÇÃO LOCAL")
+                Log.d("backend", "Erro: ${e.message}")
+                Log.d("backend", "Duração: ${endTime - startTime}ms")
             }
         }
     }

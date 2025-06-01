@@ -181,9 +181,10 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     /* ---------- JSON & Serialization ---------- */
-    implementation("org.json:json:20210307")
+    implementation("org.json:json:20250517")
     implementation("com.google.code.gson:gson:2.10.1")
 
     /* ---------- Billing ---------- */
@@ -225,6 +226,12 @@ dependencies {
 
     /* ---------- DataStore ---------- */
     implementation("androidx.datastore:datastore-preferences:1.1.6")
+
+    /* ---------- Backend ---------- */
+    implementation("androidx.security:security-crypto:1.1.0-alpha07")
+    implementation("androidx.security:security-crypto:1.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 
     /* ---------- Tests ---------- */
     testImplementation(libs.junit)

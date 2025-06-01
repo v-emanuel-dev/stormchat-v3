@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.pow
+import com.ivip.brainstormia.api.ApiClient
 
 /**
  * ViewModel que gerencia a integração com Google Play Billing para assinaturas e compras.
@@ -500,30 +501,64 @@ class BillingViewModel private constructor(application: Application) : AndroidVi
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
             val productId = purchase.products.firstOrNull()
             val planType = determinePlanType(productId)
+            val currentUser = FirebaseAuth.getInstance().currentUser
 
-            Log.i(TAG, "Compra VÁLIDA para ${productId}. Atualizando status premium. Plano: $planType")
-
-            // Atualização imediata na UI para resposta rápida
-            _isPremiumUser.value = true
-            _userPlanType.value = planType
-
-            // Salvar status localmente e no Firebase
-            savePremiumStatusLocally(true, planType)
-            saveUserStatusToFirebase(true, planType, purchase.orderId, purchase.purchaseTime, productId)
-
-            // Reconhecer a compra se ainda não foi reconhecida
-            if (!purchase.isAcknowledged) {
-                acknowledgePurchase(purchase)
+            if (currentUser == null) {
+                Log.e(TAG, "❌ Usuário não autenticado para processar compra")
+                return
             }
 
-            // Atualizar o timestamp de verificação
-            lastVerifiedTimestamp = System.currentTimeMillis()
-        } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
-            Log.i(TAG, "Compra PENDENTE: ${purchase.products.joinToString()}. Aguardando confirmação. OrderId: ${purchase.orderId}")
-        } else if (purchase.purchaseState == Purchase.PurchaseState.UNSPECIFIED_STATE) {
-            Log.w(TAG, "Compra em estado NÃO ESPECIFICADO: ${purchase.products.joinToString()}. OrderId: ${purchase.orderId}")
-        } else {
-            Log.d(TAG, "Compra em estado não processável (ex: ${purchase.purchaseState}): ${purchase.products.joinToString()}. OrderId: ${purchase.orderId}")
+            Log.i(TAG, "🔄 Enviando compra para backend: $productId -> $planType")
+
+            viewModelScope.launch {
+                try {
+                    // Obter token JWT
+                    val tokenResult = currentUser.getIdToken(false).await()
+                    val userToken = tokenResult.token
+
+                    if (userToken == null) {
+                        Log.e(TAG, "❌ Não foi possível obter token JWT")
+                        return@launch
+                    }
+
+                    // Enviar para backend
+                    val apiClient = ApiClient()
+                    val success = apiClient.setPremiumStatus(
+                        uid = currentUser.uid,
+                        purchaseToken = purchase.purchaseToken,
+                        productId = productId ?: "",
+                        planType = planType,
+                        userToken = userToken
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        if (success) {
+                            Log.i(TAG, "✅ Backend confirmou compra com sucesso")
+                            _isPremiumUser.value = true
+                            _userPlanType.value = planType
+                            savePremiumStatusLocally(true, planType)
+                        } else {
+                            Log.e(TAG, "❌ Backend rejeitou a compra")
+                            _isPremiumUser.value = false
+                            _userPlanType.value = null
+                        }
+                    }
+
+                    // Reconhecer compra local
+                    if (!purchase.isAcknowledged) {
+                        acknowledgePurchase(purchase)
+                    }
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Erro ao enviar compra para backend: ${e.message}", e)
+                    withContext(Dispatchers.Main) {
+                        // Em caso de erro, usar verificação local como fallback
+                        _isPremiumUser.value = true
+                        _userPlanType.value = planType
+                        savePremiumStatusLocally(true, planType)
+                    }
+                }
+            }
         }
     }
 
