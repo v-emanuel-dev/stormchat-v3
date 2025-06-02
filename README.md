@@ -25,7 +25,7 @@ Você pode, a qualquer momento:
 - Apagar suas conversas diretamente no app;
 - Desconectar sua conta de serviços de autenticação.
 
-Para solicitações adicionais, envie um email para **StormChat.app@gmail.com**.
+Para solicitações adicionais, envie um email para **contato@stomchat.app**.
 
 ## 5. Alterações nesta Política
 Podemos atualizar esta Política de Privacidade periodicamente. Recomendamos revisar esta página sempre que possível. Notificaremos alterações significativas por meio de atualizações do app.
