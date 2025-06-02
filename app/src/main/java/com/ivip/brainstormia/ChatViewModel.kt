@@ -74,6 +74,8 @@ private const val MAX_HISTORY_MESSAGES = 20
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val TAG = "ChatViewModel"
+
     // API Clients
     private val openAIClient = OpenAIClient(BuildConfig.OPENAI_API_KEY)
     private val googleAIClient = GoogleAIClient(BuildConfig.GOOGLE_API_KEY)
@@ -267,6 +269,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _userPlanType = MutableStateFlow<String?>(null)
     val userPlanType: StateFlow<String?> = _userPlanType.asStateFlow()
+
+    val billingVM = (application as BrainstormiaApplication).billingViewModel
 
     // Backend integration - ADICIONAR ESTAS PROPRIEDADES
     fun checkPremiumStatusWithBackend() {
@@ -1273,21 +1277,18 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     Log.d("backend", "Reason: Force flag ativo")
                     Log.d("backend", "=============================")
 
-                    billingViewModel.forceRefreshPremiumStatus(highPriority = true)
+                    billingVM.checkPremiumStatus(forceRefresh = true)
                     forceNextCheck = false
 
                     launch {
                         delay(2000)
                         Log.d("backend", "🔄 Segunda verificação após force check...")
-                        billingViewModel.checkUserSubscription()
                     }
                 } else {
                     Log.d("backend", "=== CHECK NORMAL ===")
                     Log.d("backend", "Type: NORMAL")
                     Log.d("backend", "Method: checkUserSubscription")
                     Log.d("backend", "===================")
-
-                    billingViewModel.checkUserSubscription()
                 }
 
                 val endTime = System.currentTimeMillis()
@@ -1744,7 +1745,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Force refresh with high priority
                 withContext(Dispatchers.IO) {
-                    billingVM.forceRefreshPremiumStatus(highPriority = highPriority)
+                    billingVM.checkPremiumStatus(forceRefresh = true)
                 }
 
                 // Make sure our local status is updated
@@ -1811,6 +1812,49 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun checkPremiumStatusViaBackend(): Pair<Boolean, String?> {
+        return try {
+            Log.d(TAG, "🔍 Verificando status premium via backend...")
+
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser == null) {
+                Log.w(TAG, "❌ Usuário não autenticado")
+                return Pair(false, null)
+            }
+
+            val tokenResult = withTimeoutOrNull(3000) {
+                currentUser.getIdToken(false).await()
+            }
+
+            if (tokenResult?.token == null) {
+                Log.w(TAG, "❌ Não foi possível obter token JWT")
+                return Pair(false, null)
+            }
+
+            val apiClient = ApiClient()
+            val validationResponse = withTimeoutOrNull(5000) {
+                apiClient.validatePremiumStatus(tokenResult.token!!)
+            }
+
+            if (validationResponse == null) {
+                Log.w(TAG, "⚠️ Timeout na validação do backend")
+                return Pair(false, null)
+            }
+
+            // ✅ CORREÇÃO: Usar hasAccess
+            val isPremium = validationResponse.hasAccess
+            val planType = validationResponse.subscriptionType
+
+            Log.i(TAG, "✅ Backend: Premium=$isPremium, Plano=$planType")
+
+            Pair(isPremium, planType)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Erro ao verificar premium via backend: ${e.message}", e)
+            Pair(false, null)
         }
     }
 

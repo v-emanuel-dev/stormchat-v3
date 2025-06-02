@@ -42,6 +42,7 @@ android {
         versionName = "10.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // API Keys existentes
         val apiKeyOpenaiFromProperties = localProperties.getProperty("apiKeyOpenai") ?: ""
         if (apiKeyOpenaiFromProperties.isBlank()) {
             println("Warning: 'apiKeyOpenai' not found in local.properties. BuildConfig field will be empty.")
@@ -61,34 +62,114 @@ android {
         buildConfigField("String", "GOOGLE_API_KEY", "\"${apiKeyGoogleFromProperties}\"")
         buildConfigField("String", "ANTHROPIC_API_KEY", "\"${apiKeyAnthropicFromProperties}\"")
 
+        // Versão da API
+        buildConfigField("String", "API_VERSION", "\"1.0\"")
+
         // Multidex
         multiDexEnabled = true
     }
 
     // ============================================================================
-    // CONFIGURAÇÃO DE BUILD TYPES COM MINIFICAÇÃO CONSERVADORA
+    // CONFIGURAÇÃO DE BUILD TYPES COM VARIÁVEIS DE AMBIENTE
     // ============================================================================
     buildTypes {
-        release {
+        debug {
+            // Configurações de desenvolvimento
+            val devApiUrl = localProperties.getProperty("api.url.dev") ?: "http://192.168.0.3:3000"
+            val devWebhookSecret = localProperties.getProperty("webhook.secret.dev") ?: "dev_secret_key_for_testing"
+
+            buildConfigField("String", "API_BASE_URL", "\"$devApiUrl\"")
+            buildConfigField("String", "WEBHOOK_SECRET", "\"$devWebhookSecret\"")
+            buildConfigField("boolean", "ENABLE_LOGS", "true")
+
+            // Debug sempre sem minificação para desenvolvimento
+            isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = true
+            isJniDebuggable = true
+
+            // Sufixo para identificar builds de debug
+            //applicationIdSuffix = ".debug"
+            //versionNameSuffix = "-DEBUG"
+        }
+
+        create("staging") {
+            // Configurações de staging/homologação
+            val stagingApiUrl = localProperties.getProperty("api.url.staging")
+                ?: System.getenv("STAGING_API_URL")
+                ?: "https://staging-api.brainstormia.com"
+            val stagingWebhookSecret = localProperties.getProperty("webhook.secret.staging")
+                ?: System.getenv("STAGING_WEBHOOK_SECRET")
+                ?: ""
+
+            buildConfigField("String", "API_BASE_URL", "\"$stagingApiUrl\"")
+            buildConfigField("String", "WEBHOOK_SECRET", "\"$stagingWebhookSecret\"")
+            buildConfigField("boolean", "ENABLE_LOGS", "true")
+
+            // Staging com minificação mas ainda debugável
             isMinifyEnabled = true
             isShrinkResources = true
+            isDebuggable = true
+            isJniDebuggable = false
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Configurações adicionais de release
-            isDebuggable = false
-            isJniDebuggable = false
+
+            // Sufixo para identificar builds de staging
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-STAGING"
         }
 
-        debug {
-            // Debug sempre sem minificação para desenvolvimento
-            isMinifyEnabled = false
-            isShrinkResources = false
-            isDebuggable = true
+        release {
+            // Configurações de produção
+            val prodApiUrl = localProperties.getProperty("api.url.prod")
+                ?: System.getenv("PROD_API_URL")
+                ?: "https://api.brainstormia.com"
+            val prodWebhookSecret = localProperties.getProperty("webhook.secret.prod")
+                ?: System.getenv("WEBHOOK_SECRET")
+                ?: ""
+
+            buildConfigField("String", "API_BASE_URL", "\"$prodApiUrl\"")
+            buildConfigField("String", "WEBHOOK_SECRET", "\"$prodWebhookSecret\"")
+            buildConfigField("boolean", "ENABLE_LOGS", "false")
+
+            // Release com todas as otimizações
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
+            isJniDebuggable = false
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            // Configuração de assinatura (você precisa configurar isso)
+            // signingConfig = signingConfigs.getByName("release")
         }
     }
+
+//    // Configuração de flavors (opcional)
+//    flavorDimensions += "environment"
+//    productFlavors {
+//        create("dev") {
+//            dimension = "environment"
+//            applicationIdSuffix = ".dev"
+//            versionNameSuffix = "-DEV"
+//
+//            // Pode sobrescrever configurações específicas aqui
+//            buildConfigField("boolean", "IS_DEV_FLAVOR", "true")
+//        }
+//
+//        create("prod") {
+//            dimension = "environment"
+//
+//            // Versão de produção sem sufixos
+//            buildConfigField("boolean", "IS_DEV_FLAVOR", "false")
+//        }
+//    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -244,4 +325,17 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+// Tarefa para verificar configurações
+tasks.register("printBuildConfig") {
+    doLast {
+        println("=== Build Configurations ===")
+        android.buildTypes.forEach { buildType ->
+            println("\nBuild Type: ${buildType.name}")
+            buildType.buildConfigFields.forEach { (key, field) ->
+                println("  $key = ${field.value}")
+            }
+        }
+    }
 }

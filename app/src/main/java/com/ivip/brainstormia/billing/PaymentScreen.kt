@@ -96,7 +96,7 @@ fun PaymentScreen(
     // Carregar produtos se necessário
     LaunchedEffect(Unit) {
         if (products.isEmpty()) {
-            billingViewModel.queryAvailableProducts()
+            billingViewModel.queryProducts()
         }
     }
 
@@ -216,17 +216,7 @@ fun PaymentScreen(
                             color = textSecondaryColor,
                             textAlign = TextAlign.Center
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = { billingViewModel.retryConnection() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isDarkTheme) Color(0xFF333333) else PrimaryColor
-                            )
-                        ) {
-                            Text(stringResource(R.string.try_again))
-                        }
                     } else {
                         subscriptionProducts.forEach { product ->
                             SubscriptionPlanCard(

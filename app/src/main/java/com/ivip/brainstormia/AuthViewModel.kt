@@ -96,11 +96,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
             // 2. Forçar verificação após um breve intervalo para garantir
             delay(500)
-            billingVM?.forceRefreshPremiumStatus(highPriority = true)
+            billingVM?.checkPremiumStatus(forceRefresh = true)
 
             // 3. Verificação final após todos os sistemas estarem inicializados
             delay(1500)
-            billingVM?.forceRefreshPremiumStatus(highPriority = true)
+            billingVM?.checkPremiumStatus(forceRefresh = true)
 
             // Completar o processo de autenticação
             _authState.value = AuthState.Success(user)
@@ -135,7 +135,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             delay(1000)  // Esperar 1 segundo
             Log.d(tag, "AuthViewModel: Realizando segunda verificação premium após login")
-            billingViewModel.forceRefreshPremiumStatus(highPriority = true)
+            billingViewModel.checkPremiumStatus(forceRefresh = true)
         }
     }
 

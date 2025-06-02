@@ -75,11 +75,11 @@ class BrainstormiaApplication : Application() {
 
                 // 2. Segunda verificação após sistema estar estabilizado
                 Handler(Looper.getMainLooper()).postDelayed({
-                    billingViewModel.forceRefreshPremiumStatus(highPriority = true)
+                    billingViewModel.checkPremiumStatus(forceRefresh = true)
 
                     // 3. Verificação final para garantir
                     Handler(Looper.getMainLooper()).postDelayed({
-                        billingViewModel.forceRefreshPremiumStatus(highPriority = true)
+                        billingViewModel.checkPremiumStatus(forceRefresh = true)
                     }, 1500)
                 }, 1000)
             }, 500)
@@ -144,7 +144,6 @@ class BrainstormiaApplication : Application() {
 
     fun handleSubscriptionCancellationNotification() {
         Log.d("BrainstormiaApp", "Processing subscription cancellation notification")
-        billingViewModel.checkForCancellation() // Access via the lazy property
     }
 
     companion object {

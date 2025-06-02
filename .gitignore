@@ -1,3 +1,8 @@
+# Secrets
+local.properties
+*.keystore
+keystore.properties
+
 # =========================================
 # Arquivos e Pastas Gerados pelo Build
 # =========================================
