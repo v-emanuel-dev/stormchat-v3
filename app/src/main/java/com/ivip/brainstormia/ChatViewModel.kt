@@ -15,6 +15,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainstormia.ConversationType
 import com.google.firebase.auth.FirebaseAuth
+import com.ivip.brainstormia.api.ApiClient
+import com.ivip.brainstormia.api.ValidationResponse
+import com.ivip.brainstormia.auth.TokenManager
 import com.ivip.brainstormia.data.db.AppDatabase
 import com.ivip.brainstormia.data.db.ChatDao
 import com.ivip.brainstormia.data.db.ChatMessageEntity
@@ -49,6 +52,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
@@ -60,11 +64,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import com.ivip.brainstormia.api.ApiClient
-import com.ivip.brainstormia.auth.TokenManager
-import kotlinx.coroutines.tasks.await
-import com.ivip.brainstormia.api.ValidationResponse
-import kotlinx.coroutines.tasks.await
 
 enum class LoadingState { IDLE, LOADING, ERROR }
 
@@ -1398,7 +1397,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Initial premium status check
         checkIfUserIsPremium()
-        forceNextCheck = true  // Forçar verificação completa na inicialização
+        viewModelScope.launch {
+            // Aguarda 5 segundos antes da primeira verificação periódica
+            delay(5000)
+
+            // Verificações periódicas a cada 60 segundos
+            while (true) {
+                delay(60000) // 60 segundos
+
+                // Somente verifica se o usuário estiver logado
+                if (FirebaseAuth.getInstance().currentUser != null) {
+                    Log.d("ChatViewModel", "Verificação periódica de status premium")
+                    checkIfUserIsPremium()
+                }
+            }
+        }
 
         // NOVO: Timer para verificar o status premium periodicamente
         viewModelScope.launch {
@@ -1429,23 +1442,22 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
         // Premium status check and selected model validation
         viewModelScope.launch {
-            // First, load user's model preference
+            // Carrega preferência do usuário do banco
             modelPreferenceDao.getModelPreference(_userIdFlow.value)
                 .collect { preference ->
                     if (preference != null) {
                         val savedModel = availableModels.find { it.id == preference.selectedModelId }
                         if (savedModel != null) {
-                            // Check if user is premium or if model doesn't require premium
                             if (!savedModel.isPremium || _isPremiumUser.value) {
+                                // Modelo é gratuito ou usuário é premium: mantém!
                                 _selectedModel.value = savedModel
                                 Log.i("ChatViewModel", "Loaded user model preference: ${savedModel.displayName}")
                             } else {
-                                // User is not premium but trying to use a premium model
+                                // Usuário básico tentando usar modelo premium: força default
                                 val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
                                 _selectedModel.value = defaultModel
                                 Log.i("ChatViewModel", "User is not premium. Reverting to default model: ${defaultModel.displayName}")
-
-                                // Update preference in database to default model
+                                // Atualiza banco
                                 modelPreferenceDao.insertOrUpdatePreference(
                                     ModelPreferenceEntity(
                                         userId = _userIdFlow.value,
@@ -1453,7 +1465,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                                     )
                                 )
                             }
+                        } else {
+                            // Modelo salvo não existe: força default
+                            val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
+                            _selectedModel.value = defaultModel
+                            Log.i("ChatViewModel", "Model not found. Reverting to default: ${defaultModel.displayName}")
                         }
+                    } else {
+                        // Não tem preferência salva: força default
+                        val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
+                        _selectedModel.value = defaultModel
+                        Log.i("ChatViewModel", "No preference. Using default model: ${defaultModel.displayName}")
                     }
                 }
         }
@@ -1732,29 +1754,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         checkIfUserIsPremium()
     }
     // Public method to force premium status check with options
-    fun forceCheckPremiumStatus(highPriority: Boolean = true) {
-        forceNextCheck = true
+    fun forceCheckPremiumStatus(highPriority: Boolean = false) {
         Log.d("ChatViewModel", "Forcing premium status check with high priority: $highPriority")
 
-        // Use a new coroutine to avoid job cancellation
         viewModelScope.launch {
             try {
-                // Get the app and billing view model
                 val app = getApplication<Application>() as BrainstormiaApplication
                 val billingVM = app.billingViewModel
 
-                // Force refresh with high priority
-                withContext(Dispatchers.IO) {
-                    billingVM.checkPremiumStatus(forceRefresh = true)
-                }
+                // Chama verificação forçada (o BillingViewModel já faz debounce/caching)
+                billingVM.checkPremiumStatus(forceRefresh = true)
 
-                // Make sure our local status is updated
-                delay(300)
-                _isPremiumUser.value = billingVM.isPremiumUser.value
-
-                // Second check after a delay
+                // Espera e atualiza status local
                 delay(1000)
                 _isPremiumUser.value = billingVM.isPremiumUser.value
+
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error in forceCheckPremiumStatus: ${e.message}", e)
             }
@@ -1763,17 +1777,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleLogin() {
         Log.d("ChatViewModel", "handleLogin() called - user=${_userIdFlow.value}")
-        _selectedModel.value = defaultModel
-        // Make sure conversations are visible
+        //_selectedModel.value = defaultModel
         _showConversations.value = true
 
-        forceNextCheck = true
+        // Notifica BillingViewModel uma única vez
         val app = getApplication<Application>() as BrainstormiaApplication
         app.billingViewModel.handleUserChanged()
 
-        // Force reload of conversations with multiple attempts
+        // Force reload of conversations
         viewModelScope.launch {
-            // First attempt
             val currentUserId = getCurrentUserId()
             Log.d("ChatViewModel", "handleLogin: reloading conversations for user $currentUserId")
 
@@ -1782,35 +1794,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             delay(50)
             _userIdFlow.value = currentUserId
 
-            // Check after a short delay if conversations loaded
+            // Aguarda um pouco antes de verificar as conversas
             delay(500)
+
             if (conversationListForDrawer.value.isEmpty() && auth.currentUser != null) {
-                Log.w("ChatViewModel", "First attempt failed, trying second refresh")
-
-                // Second attempt with longer delay
+                Log.w("ChatViewModel", "Conversas vazias, tentando recarregar")
                 refreshConversationList()
-
-                // One final check with longer delay
-                delay(1000)
-                if (conversationListForDrawer.value.isEmpty() && auth.currentUser != null) {
-                    Log.w("ChatViewModel", "Second attempt failed, forcing DB query")
-
-                    // Last resort - direct DB query
-                    try {
-                        val userId = getCurrentUserId()
-                        val conversations = withContext(Dispatchers.IO) {
-                            chatDao.getConversationsForUser(userId).first()
-                        }
-                        Log.d("ChatViewModel", "Direct DB query found ${conversations.size} conversations")
-
-                        // Force one more refresh
-                        _userIdFlow.value = ""
-                        delay(50)
-                        _userIdFlow.value = userId
-                    } catch (e: Exception) {
-                        Log.e("ChatViewModel", "Error in direct DB query", e)
-                    }
-                }
             }
         }
     }

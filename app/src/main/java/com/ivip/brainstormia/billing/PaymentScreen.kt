@@ -1,5 +1,6 @@
 package com.ivip.brainstormia.billing
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,15 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -31,9 +30,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -41,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -55,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ProductDetails
 import com.ivip.brainstormia.BrainstormiaApplication
 import com.ivip.brainstormia.R
@@ -76,16 +80,78 @@ fun PaymentScreen(
 ) {
     val context = LocalContext.current
     val currentActivity = context as? android.app.Activity
-    val billingViewModel = (context.applicationContext as BrainstormiaApplication).billingViewModel
+
+    // ✅ CORREÇÃO 1: Verificação segura do BillingViewModel
+    val billingViewModel = remember {
+        try {
+            (context.applicationContext as? BrainstormiaApplication)?.billingViewModel
+        } catch (e: Exception) {
+            Log.e("PaymentScreen", "Erro ao obter BillingViewModel", e)
+            null
+        }
+    }
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Observar o estado de produtos e compras
-    val products by billingViewModel.products.collectAsState()
-    val isPremiumUser by billingViewModel.isPremiumUser.collectAsState()
+    // ✅ CORREÇÃO 2: Estados com verificação de null
+    val products by (billingViewModel?.products?.collectAsState() ?: remember { mutableStateOf(emptyList()) })
+    val isPremiumUser by (billingViewModel?.isPremiumUser?.collectAsState() ?: remember { mutableStateOf(false) })
+    val purchaseInProgress by (billingViewModel?.purchaseInProgress?.collectAsState() ?: remember { mutableStateOf(false) })
 
-    // Navegar quando o usuário se tornar premium
+    // ✅ CORREÇÃO 3: Verificar se BillingViewModel está disponível
+    if (billingViewModel == null) {
+        LaunchedEffect(Unit) {
+            snackbarHostState.showSnackbar(
+                message = "Erro: Sistema de pagamentos indisponível",
+                duration = SnackbarDuration.Long
+            )
+        }
+
+        // Mostrar tela de erro em vez de crash
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(if (isDarkTheme) Color(0xFF121212) else BackgroundColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ErrorOutline,
+                    contentDescription = "Erro",
+                    modifier = Modifier.size(64.dp),
+                    tint = Color.Red
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Sistema de pagamentos indisponível",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (isDarkTheme) Color.White else Color.Black,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Tente novamente mais tarde",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isDarkTheme) Color.LightGray else Color.DarkGray,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = onNavigateBack,
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
+                ) {
+                    Text("Voltar", color = Color.White)
+                }
+            }
+        }
+        return
+    }
+
+    // ✅ CORREÇÃO 4: Verificar se é usuário premium e redirecionar
     LaunchedEffect(isPremiumUser) {
         if (isPremiumUser) {
             delay(1000) // Dar tempo para o usuário ver a mensagem de sucesso
@@ -93,10 +159,28 @@ fun PaymentScreen(
         }
     }
 
-    // Carregar produtos se necessário
+    // ✅ CORREÇÃO 5: Carregar produtos com tratamento de erro
     LaunchedEffect(Unit) {
-        if (products.isEmpty()) {
-            billingViewModel.queryProducts()
+        try {
+            if (products.isEmpty()) {
+                Log.d("PaymentScreen", "Carregando produtos...")
+                billingViewModel.queryProducts()
+
+                // Timeout para carregar produtos
+                delay(10000) // 10 segundos
+                if (products.isEmpty()) {
+                    snackbarHostState.showSnackbar(
+                        message = "Não foi possível carregar os planos. Tente novamente.",
+                        duration = SnackbarDuration.Long
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PaymentScreen", "Erro ao carregar produtos", e)
+            snackbarHostState.showSnackbar(
+                message = "Erro ao carregar planos: ${e.localizedMessage}",
+                duration = SnackbarDuration.Long
+            )
         }
     }
 
@@ -222,14 +306,28 @@ fun PaymentScreen(
                             SubscriptionPlanCard(
                                 product = product,
                                 onSelectPlan = {
-                                    if (currentActivity != null) {
-                                        billingViewModel.launchBillingFlow(currentActivity, product)
-                                    } else {
-                                        // Preparar a mensagem de erro aqui para evitar chamar stringResource
-                                        // fora de um contexto @Composable
-                                        val errorMessage = context.getString(R.string.purchase_error)
+                                    // ✅ CORREÇÃO 6: Verificações antes de iniciar compra
+                                    try {
+                                        if (currentActivity != null && !purchaseInProgress) {
+                                            Log.d("PaymentScreen", "Iniciando compra do produto: ${product.productId}")
+                                            billingViewModel.launchBillingFlow(currentActivity, product)
+                                        } else {
+                                            val errorMessage = if (currentActivity == null) {
+                                                "Erro: Atividade não disponível"
+                                            } else {
+                                                "Aguarde, compra em andamento..."
+                                            }
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar(errorMessage)
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("PaymentScreen", "Erro ao iniciar compra", e)
                                         coroutineScope.launch {
-                                            snackbarHostState.showSnackbar(errorMessage)
+                                            snackbarHostState.showSnackbar(
+                                                "Erro ao iniciar compra: ${e.localizedMessage}",
+                                                duration = SnackbarDuration.Short
+                                            )
                                         }
                                     }
                                 },
@@ -257,122 +355,144 @@ fun SubscriptionPlanCard(
     secondaryTextColor: Color,
     highlightColor: Color
 ) {
-    // Determinar preço e período
-    val price = if (product.productType == "subs") {
-        product.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
-    } else {
-        product.oneTimePurchaseOfferDetails?.formattedPrice
-    } ?: stringResource(R.string.price_unavailable)
+    val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E1E1E) else Color.White
+    val borderColor = if (isDarkTheme) highlightColor.copy(alpha = 0.3f) else highlightColor.copy(alpha = 0.5f)
 
-    val period = if (product.productType == "subs") {
-        when {
-            product.productId.contains("mensal", ignoreCase = true) -> stringResource(R.string.per_month)
-            product.productId.contains("anual", ignoreCase = true) -> stringResource(R.string.per_year)
-            else -> ""
+    // Determinar se é o plano mais popular (exemplo: anual)
+    val isPopular = product.productId.contains("anual", ignoreCase = true)
+
+    // Obter informações do produto
+    val productName = when {
+        product.productId.contains("mensal", ignoreCase = true) -> "Plano Mensal"
+        product.productId.contains("anual", ignoreCase = true) -> "Plano Anual"
+        product.productId.contains("vital", ignoreCase = true) -> "Plano Vitalício"
+        else -> product.name.takeIf { it.isNotEmpty() } ?: "Plano Premium"
+    }
+
+    // Obter preço do produto
+    val price = when (product.productType) {
+        BillingClient.ProductType.SUBS -> {
+            product.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice ?: "Preço não disponível"
         }
-    } else ""
+        BillingClient.ProductType.INAPP -> {
+            product.oneTimePurchaseOfferDetails?.formattedPrice ?: "Preço não disponível"
+        }
+        else -> "Preço não disponível"
+    }
 
-    // Determinar nome do plano
-    val planName = when {
-        product.productId.contains("mensal", ignoreCase = true) -> stringResource(R.string.monthly_plan)
-        product.productId.contains("anual", ignoreCase = true) -> stringResource(R.string.annual_plan)
-        product.productId.contains("vital", ignoreCase = true) -> stringResource(R.string.lifetime_plan)
-        else -> product.name
+    // Descrição baseada no tipo de plano
+    val description = when {
+        product.productId.contains("mensal", ignoreCase = true) -> "Acesso completo por 1 mês\nRenovação automática"
+        product.productId.contains("anual", ignoreCase = true) -> "Acesso completo por 1 ano\nEconomize com o plano anual"
+        product.productId.contains("vital", ignoreCase = true) -> "Acesso vitalício\nPagamento único, para sempre"
+        else -> "Acesso completo aos recursos premium"
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(vertical = 6.dp)
             .clickable { onSelectPlan() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) Color(0xFF1A1A1A) else Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         border = BorderStroke(
-            width = 1.dp,
-            color = if (product.productId.contains("anual", ignoreCase = true))
-                highlightColor.copy(alpha = 0.5f)
-            else
-                if (isDarkTheme) Color.Gray.copy(alpha = 0.3f) else Color.Gray.copy(alpha = 0.5f)
+            width = if (isPopular) 2.dp else 1.dp,
+            color = if (isPopular) highlightColor else borderColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isDarkTheme) 4.dp else 2.dp
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = planName,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
-                }
-
+            // Badge "Mais Popular" se for plano anual
+            if (isPopular) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    if (product.productId.contains("anual", ignoreCase = true)) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = highlightColor,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .padding(end = 4.dp)
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = highlightColor,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "MAIS POPULAR",
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
-
-                    // Usar um formato de string para preço + período
-                    Text(
-                        text = stringResource(R.string.price_format, price, period),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = highlightColor
-                    )
                 }
             }
 
+            // Nome do plano
+            Text(
+                text = productName,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Preço
+            Text(
+                text = price,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = highlightColor
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Descrição
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = secondaryTextColor,
+                lineHeight = 20.sp
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Recursos específicos de cada plano
-            when {
-                product.productId.contains("mensal", ignoreCase = true) -> {
-                    PlanFeatureItem(text = stringResource(R.string.feature_premium_models), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_conversation_export), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_priority_support), isDarkTheme = isDarkTheme, textColor = textColor)
-                }
-                product.productId.contains("anual", ignoreCase = true) -> {
-                    PlanFeatureItem(text = stringResource(R.string.feature_premium_models), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_conversation_export), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_priority_support), isDarkTheme = isDarkTheme, textColor = textColor)
-                }
-                product.productId.contains("vital", ignoreCase = true) -> {
-                    PlanFeatureItem(text = stringResource(R.string.feature_lifetime_access), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_conversation_export), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_priority_support), isDarkTheme = isDarkTheme, textColor = textColor)
-                    PlanFeatureItem(text = stringResource(R.string.feature_no_recurring_fee), isDarkTheme = isDarkTheme, textColor = textColor)
+            // Lista de benefícios
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                BenefitItem("✓ Acesso a todos os modelos de IA", textColor)
+                BenefitItem("✓ Geração de imagens ilimitada", textColor)
+                BenefitItem("✓ Upload de arquivos", textColor)
+                BenefitItem("✓ Backup automático", textColor)
+                BenefitItem("✓ Suporte prioritário", textColor)
+
+                if (product.productId.contains("vital", ignoreCase = true)) {
+                    BenefitItem("✓ Sem renovações necessárias", highlightColor)
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
+            // Botão de seleção
             Button(
                 onClick = onSelectPlan,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDarkTheme) BrainGold else BrainGold,
+                    containerColor = highlightColor,
                     contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(8.dp)
+                )
             ) {
                 Text(
-                    text = stringResource(R.string.select_plan),
-                    fontWeight = FontWeight.SemiBold
+                    text = "Selecionar Plano",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
                 )
             }
         }
@@ -380,28 +500,17 @@ fun SubscriptionPlanCard(
 }
 
 @Composable
-fun PlanFeatureItem(
+private fun BenefitItem(
     text: String,
-    isDarkTheme: Boolean,
-    textColor: Color
+    color: Color
 ) {
     Row(
-        modifier = Modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Default.CheckCircle,
-            contentDescription = null,
-            tint = if (isDarkTheme) Color.Gray else Color.DarkGray,
-            modifier = Modifier.size(16.dp)
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
         Text(
             text = text,
-            fontSize = 14.sp,
-            color = textColor.copy(alpha = 0.8f)
+            style = MaterialTheme.typography.bodyMedium,
+            color = color
         )
     }
 }

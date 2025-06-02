@@ -5,11 +5,11 @@ import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.util.zip.ZipInputStream
-import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import java.util.zip.ZipInputStream
 
 /**
  * Implementação para arquivos Word (DOCX)

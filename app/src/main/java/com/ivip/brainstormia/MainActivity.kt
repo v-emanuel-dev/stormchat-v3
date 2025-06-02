@@ -49,6 +49,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.ivip.brainstormia.auth.GoogleSignInManager
+import com.ivip.brainstormia.billing.BillingViewModel
 import com.ivip.brainstormia.billing.PaymentScreen
 import com.ivip.brainstormia.navigation.Routes
 import com.ivip.brainstormia.theme.BrainstormiaTheme
@@ -90,7 +91,6 @@ class MainActivity : ComponentActivity() {
             putBoolean("has_data", result.data != null)
         })
 
-        // Adicionar registro para Crashlytics
         Log.d("googlelogin", "MainActivity: Resultado de login Google recebido, código: ${result.resultCode}, tem dados: ${result.data != null}")
         crashlytics.apply {
             log("Google Sign In result received in MainActivity")
@@ -113,7 +113,6 @@ class MainActivity : ComponentActivity() {
                         crashlytics.apply {
                             log("Google login failed in MainActivity: ${signInResult.message}")
                             setCustomKey("main_auth_error_message", signInResult.message)
-                            // Tornar o erro fatal
                             recordException(RuntimeException("Falha de login Google via MainActivity: ${signInResult.message}"))
                         }
                         Toast.makeText(this@MainActivity, signInResult.message, Toast.LENGTH_LONG).show()
@@ -123,7 +122,6 @@ class MainActivity : ComponentActivity() {
                 Log.e("googlelogin", "MainActivity: Erro inesperado ao processar resultado de login", e)
                 crashlytics.apply {
                     log("Exception in MainActivity sign in result handling")
-                    // Tornar o erro fatal
                     recordException(e)
                 }
                 Toast.makeText(
@@ -147,6 +145,57 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // ✅ NOVA FUNÇÃO: Verificação segura do sistema de billing
+    private fun initializeBillingSafely() {
+        try {
+            Log.d("MainActivity", "=== VERIFICANDO SISTEMA DE BILLING ===")
+
+            val app = applicationContext as? BrainstormiaApplication
+            if (app == null) {
+                Log.e("MainActivity", "❌ Não foi possível obter BrainstormiaApplication")
+                crashlytics.recordException(RuntimeException("BrainstormiaApplication não encontrada"))
+                return
+            }
+
+            val billingViewModel = app.billingViewModel
+
+            if (billingViewModel == null) {
+                Log.w("MainActivity", "⚠️ BillingViewModel não inicializado - tentando recriar")
+
+                try {
+                    app.recreateBillingViewModel()
+                    Log.d("MainActivity", "✅ BillingViewModel recriado com sucesso")
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "❌ Falha ao recriar BillingViewModel", e)
+                    crashlytics.recordException(e)
+                }
+            } else {
+                Log.d("MainActivity", "✅ BillingViewModel está disponível")
+            }
+
+        } catch (e: Exception) {
+            Log.e("MainActivity", "❌ Erro crítico na verificação de billing", e)
+            crashlytics.recordException(e)
+        }
+    }
+
+    // ✅ NOVA FUNÇÃO: Verificar se billing está funcional
+    private fun isBillingAvailable(): Boolean {
+        return try {
+            val app = applicationContext as? BrainstormiaApplication
+            val billing = app?.billingViewModel
+
+            val isAvailable = billing != null
+            Log.d("MainActivity", "Billing disponível: $isAvailable")
+
+            isAvailable
+        } catch (e: Exception) {
+            Log.e("MainActivity", "❌ Erro ao verificar disponibilidade do billing", e)
+            crashlytics.recordException(e)
+            false
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -157,7 +206,6 @@ class MainActivity : ComponentActivity() {
         crashlytics = FirebaseCrashlytics.getInstance()
         crashlytics.setCrashlyticsCollectionEnabled(true)
 
-        // Registrar informações de sessão
         try {
             val appInfo = packageManager.getPackageInfo(packageName, 0)
             crashlytics.setCustomKey("app_version_name", appInfo.versionName ?: "unknown")
@@ -170,7 +218,9 @@ class MainActivity : ComponentActivity() {
         crashlytics.log("Iniciando MainActivity")
         themePreferences = ThemePreferences(this)
 
-        // Inicializar o gerenciador de login Google
+        // ✅ PROTEÇÃO: Verificar billing logo na inicialização
+        initializeBillingSafely()
+
         try {
             googleSignInManager = GoogleSignInManager(this)
             crashlytics.log("GoogleSignInManager inicializado com sucesso")
@@ -178,7 +228,6 @@ class MainActivity : ComponentActivity() {
             Log.e("MainActivity", "Error initializing GoogleSignInManager", e)
             crashlytics.log("Erro ao inicializar GoogleSignInManager")
             crashlytics.recordException(e)
-            // Exibir mensagem amigável
             Toast.makeText(
                 this,
                 "Erro ao inicializar componentes de login. Por favor, tente novamente.",
@@ -189,7 +238,6 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermission()
         handleNotificationIntent(intent)
 
-        // Configuração do Firebase Messaging
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
@@ -219,28 +267,23 @@ class MainActivity : ComponentActivity() {
             val exportState by exportViewModelInstance.exportState.collectAsState()
 
             DisposableEffect(isDarkThemeEnabled) {
-                // Obtenha as cores da TopBar usando a constante definida
                 val topBarColor = if (isDarkThemeEnabled) {
-                    TopBarColorDark.toArgb()  // Usando a constante atualizada Color(0xFF1E1E1E)
+                    TopBarColorDark.toArgb()
                 } else {
                     PrimaryColor.toArgb()
                 }
 
-                val BackgroundColorBlack = Color(0xFF121212)  // #121212  (modo escuro)
-                val BackgroundColor      = Color(0xFFF0F4F7)  // #F0F4F7  (modo claro)
+                val BackgroundColorBlack = Color(0xFF121212)
+                val BackgroundColor      = Color(0xFFF0F4F7)
 
-                // Aplique as cores às barras do sistema
                 window.statusBarColor = topBarColor
                 window.navigationBarColor = topBarColor
 
-                // Evita áreas brancas em tela cheia, preenchendo to.do o fundo da janela
-                // Usando exatamente as cores solicitadas: #121212 para escuro e #F0F4F7 para claro
                 window.decorView.setBackgroundColor(if (isDarkThemeEnabled) BackgroundColorBlack.toArgb() else BackgroundColor.toArgb())
 
-                // Configure a visibilidade dos ícones (sempre brancos, já que ambos os fundos são escuros)
                 WindowInsetsControllerCompat(window, window.decorView).apply {
-                    isAppearanceLightStatusBars = false  // Ícones sempre brancos, já que PrimaryColor é escuro
-                    isAppearanceLightNavigationBars = false  // Ícones sempre brancos
+                    isAppearanceLightStatusBars = false
+                    isAppearanceLightNavigationBars = false
                 }
 
                 onDispose {}
@@ -252,7 +295,6 @@ class MainActivity : ComponentActivity() {
 
             val authState by authViewModel.authState.collectAsState()
             LaunchedEffect(authState, navController.currentDestination?.route) {
-                // Só ative o overlay global quando NÃO estiver na tela de autenticação
                 showLoadingOverlay = authState is AuthState.Loading &&
                         (navController.currentDestination?.route != Routes.AUTH &&
                                 navController.currentDestination?.route != Routes.RESET_PASSWORD)
@@ -310,20 +352,74 @@ class MainActivity : ComponentActivity() {
                                 UserProfileScreen(
                                     onNavigateBack = { navController.popBackStack() },
                                     onNavigateToPayment = {
-                                        navController.navigate(Routes.PAYMENT)
+                                        // ✅ PROTEÇÃO: Verificar billing antes de navegar
+                                        Log.d("MainActivity", "=== TENTATIVA DE NAVEGAÇÃO PARA PAYMENT ===")
+
+                                        if (isBillingAvailable()) {
+                                            Log.d("MainActivity", "✅ Billing disponível - navegando para PAYMENT")
+                                            navController.navigate(Routes.PAYMENT)
+                                        } else {
+                                            Log.w("MainActivity", "⚠️ Billing indisponível - mostrando mensagem")
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "Sistema de pagamentos temporariamente indisponível. Tente novamente em alguns minutos.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
                                     },
                                     authViewModel = authViewModel,
                                     isDarkTheme = isDarkThemeEnabled
                                 )
                             }
                             composable(Routes.PAYMENT) {
-                                PaymentScreen(
-                                    onNavigateBack = { navController.popBackStack() },
-                                    onPurchaseComplete = {
-                                        navController.popBackStack(Routes.USER_PROFILE, inclusive = false)
-                                    },
-                                    isDarkTheme = isDarkThemeEnabled
-                                )
+                                // ✅ PROTEÇÃO: Verificar billing para payment screen
+                                val billingAvailable = remember {
+                                    Log.d("MainActivity", "=== VERIFICANDO BILLING PARA PAYMENT SCREEN ===")
+
+                                    val app = applicationContext as? BrainstormiaApplication
+                                    val billing = app?.billingViewModel
+
+                                    val isReady = billing != null
+
+                                    Log.d("MainActivity", "Billing ready: $isReady")
+                                    Log.d("MainActivity", "Current user: ${authViewModel.currentUser.value?.email}")
+
+                                    if (billing != null) {
+                                        Log.d("MainActivity", "✅ BillingViewModel encontrado")
+                                    } else {
+                                        Log.e("MainActivity", "❌ BillingViewModel é NULL")
+                                    }
+
+                                    isReady
+                                }
+
+                                if (billingAvailable) {
+                                    // ✅ Sistema de billing disponível - usar PaymentScreen normal
+                                    Log.d("MainActivity", "=== CARREGANDO PAYMENT SCREEN NORMAL ===")
+
+                                    PaymentScreen(
+                                        onNavigateBack = {
+                                            Log.d("MainActivity", "Voltando da tela de pagamento")
+                                            navController.popBackStack()
+                                        },
+                                        onPurchaseComplete = {
+                                            Log.d("MainActivity", "✅ Compra completada - voltando para perfil")
+                                            navController.popBackStack(Routes.USER_PROFILE, inclusive = false)
+                                        },
+                                        isDarkTheme = isDarkThemeEnabled
+                                    )
+                                } else {
+                                    // ✅ Sistema de billing indisponível - usar Fallback
+                                    Log.w("MainActivity", "⚠️ Billing indisponível - usando FallbackPaymentScreen")
+
+                                    FallbackPaymentScreen(
+                                        onNavigateBack = {
+                                            Log.d("MainActivity", "Voltando do fallback payment")
+                                            navController.popBackStack()
+                                        },
+                                        isDarkTheme = isDarkThemeEnabled
+                                    )
+                                }
                             }
                         }
                     }
@@ -347,7 +443,6 @@ class MainActivity : ComponentActivity() {
         Log.d("googlelogin", "MainActivity: Iniciando processo de login Google")
         crashlytics.log("Iniciando login Google via MainActivity")
 
-        // Execute diagnóstico antes de iniciar login
         try {
             val authDiagnostics = AuthDiagnostics(this)
             authDiagnostics.runDiagnostics()
@@ -357,20 +452,17 @@ class MainActivity : ComponentActivity() {
         }
 
         try {
-            // Obter WebClientID para log
             val webClientId = getString(R.string.default_web_client_id)
             Log.d("googlelogin", "MainActivity: Usando WebClientID: $webClientId")
             crashlytics.log("WebClientID em uso: $webClientId")
 
-            // Usar o gerenciador para iniciar o login
-            googleSignInManager.signOut() // Limpar estado anterior
+            googleSignInManager.signOut()
             Log.d("googlelogin", "MainActivity: Lançando intent de login Google")
             signInLauncher.launch(googleSignInManager.getSignInIntent())
         } catch (e: Exception) {
             Log.e("googlelogin", "MainActivity: Erro ao lançar login Google", e)
             crashlytics.apply {
                 log("Exception launching Google sign in")
-                // Tornar o erro fatal
                 recordException(e)
             }
             Toast.makeText(
@@ -396,6 +488,9 @@ class MainActivity : ComponentActivity() {
             app.exportViewModel.setupDriveService()
             app.chatViewModel.handleLogin()
 
+            // ✅ PROTEÇÃO: Verificar billing após login bem-sucedido
+            initializeBillingSafely()
+
             Toast.makeText(
                 this,
                 "Welcome ${email ?: "back"}!",
@@ -408,7 +503,6 @@ class MainActivity : ComponentActivity() {
                 recordException(e)
             }
 
-            // Mostrar uma mensagem amigável mas ainda permitir a navegação
             Toast.makeText(
                 this,
                 "Bem-vindo! Algumas funcionalidades podem estar limitadas.",
@@ -471,6 +565,17 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         crashlytics.log("MainActivity.onResume")
+
+        try {
+            if (isBillingAvailable()) {
+                Log.d("MainActivity", "✅ Billing verificado no onResume - OK")
+            } else {
+                Log.w("MainActivity", "⚠️ Billing indisponível no onResume - tentando recriar")
+                initializeBillingSafely()
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Erro ao verificar billing no onResume", e)
+        }
     }
 
     override fun onPause() {
@@ -481,5 +586,27 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         crashlytics.log("MainActivity.onDestroy")
+    }
+}
+
+// ✅ EXTENSÃO para recriar BillingViewModel
+fun BrainstormiaApplication.recreateBillingViewModel() {
+    try {
+        Log.d("BrainstormiaApp", "=== RECRIANDO BILLING VIEW MODEL ===")
+
+        // Recriar usando o campo público
+        val newBilling = BillingViewModel.getInstance(this)
+
+        Log.d("BrainstormiaApp", "✅ BillingViewModel recriado com sucesso")
+
+        if (newBilling != null) {
+            Log.d("BrainstormiaApp", "✅ Verificação: BillingViewModel está disponível")
+        } else {
+            Log.e("BrainstormiaApp", "❌ Verificação: BillingViewModel ainda é NULL")
+        }
+
+    } catch (e: Exception) {
+        Log.e("BrainstormiaApp", "❌ ERRO CRÍTICO ao recriar BillingViewModel", e)
+        FirebaseCrashlytics.getInstance().recordException(e)
     }
 }

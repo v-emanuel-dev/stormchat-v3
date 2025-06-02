@@ -84,36 +84,23 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun handleFirebaseUser(user: FirebaseUser) {
-
-        viewModelScope.launch {
-            // Existing user handling code...
-
-            // MODIFICAÇÃO: Sequência robusta de verificação de premium
-            val billingVM = (getApplication<Application>() as? BrainstormiaApplication)?.billingViewModel
-
-            // 1. Notificar BillingViewModel sobre mudança de usuário
-            billingVM?.handleUserChanged()
-
-            // 2. Forçar verificação após um breve intervalo para garantir
-            delay(500)
-            billingVM?.checkPremiumStatus(forceRefresh = true)
-
-            // 3. Verificação final após todos os sistemas estarem inicializados
-            delay(1500)
-            billingVM?.checkPremiumStatus(forceRefresh = true)
-
-            // Completar o processo de autenticação
-            _authState.value = AuthState.Success(user)
-        }
-
-        viewModelScope.launch {
-            // Existing user handling code...
-
-            // Add this line to trigger premium status verification
-            (getApplication<Application>() as? BrainstormiaApplication)?.billingViewModel?.handleUserChanged()
-            _authState.value = AuthState.Success(user)
-        }
         Log.d(tag, "AuthViewModel: Firebase user recebido: ${user.email}")
+        Log.i("BillingViewModel", "Usuário logado: UID=${user.uid}, Email=${user.email}")
+        Log.i("BillingViewModel", "Nome: ${user.displayName}")
+        Log.i("BillingViewModel", "Provedores: ${user.providerData.map { it.providerId }}")
+        viewModelScope.launch {
+            try {
+                val tokenResult = user.getIdToken(false).await()
+                val jwt = tokenResult?.token
+                if (jwt != null) {
+                    Log.i("BillingViewModel", "JWT Token: $jwt")
+                } else {
+                    Log.e("BillingViewModel", "Não foi possível obter o token JWT.")
+                }
+            } catch (e: Exception) {
+                Log.e("BillingViewModel", "Erro ao obter token JWT", e)
+            }
+        }
 
         // Adicionar registro para Crashlytics
         crashlytics.setUserId(user.uid)
@@ -125,17 +112,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _currentUser.value = user
         _authState.value = AuthState.Success(user)
 
-        Log.d(tag, "AuthViewModel: Notificando BillingViewModel sobre novo login")
-        billingViewModel.handleUserChanged()
-
-        Log.d(tag, "AuthViewModel: Notificando BillingViewModel sobre novo login com verificação dupla")
-        billingViewModel.handleUserChanged()
-
-        // Segunda verificação após um breve intervalo para garantir
+        // Notifica BillingViewModel apenas uma vez
         viewModelScope.launch {
-            delay(1000)  // Esperar 1 segundo
-            Log.d(tag, "AuthViewModel: Realizando segunda verificação premium após login")
-            billingViewModel.checkPremiumStatus(forceRefresh = true)
+            try {
+                Log.d(tag, "AuthViewModel: Notificando BillingViewModel sobre novo login")
+                billingViewModel.handleUserChanged()
+
+                // Aguarda um momento para garantir que a primeira verificação complete
+                delay(2000)
+
+                // Uma segunda verificação opcional após estabilização
+                Log.d(tag, "AuthViewModel: Verificação adicional do status premium")
+                billingViewModel.checkPremiumStatus()
+
+            } catch (e: Exception) {
+                Log.e(tag, "Erro ao notificar BillingViewModel", e)
+            }
         }
     }
 

@@ -38,8 +38,8 @@ android {
         applicationId = "com.ivip.brainstormia"
         minSdk = 26
         targetSdk = 35
-        versionCode = 100
-        versionName = "10.0"
+        versionCode = 101
+        versionName = "10.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // API Keys existentes
@@ -75,7 +75,7 @@ android {
     buildTypes {
         debug {
             // Configurações de desenvolvimento
-            val devApiUrl = localProperties.getProperty("api.url.dev") ?: "http://192.168.0.3:3000"
+            val devApiUrl = localProperties.getProperty("api.url.dev") ?: "https://stormchat-678f9f5a3073.herokuapp.com"
             val devWebhookSecret = localProperties.getProperty("webhook.secret.dev") ?: "dev_secret_key_for_testing"
 
             buildConfigField("String", "API_BASE_URL", "\"$devApiUrl\"")

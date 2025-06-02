@@ -146,6 +146,17 @@ class BrainstormiaApplication : Application() {
         Log.d("BrainstormiaApp", "Processing subscription cancellation notification")
     }
 
+    fun recreateBillingViewModel() {
+        try {
+            Log.d("BrainstormiaApp", "=== RECRIANDO BILLING VIEW MODEL ===")
+            BillingViewModel.getInstance(this)
+            Log.d("BrainstormiaApp", "✅ BillingViewModel recriado com sucesso")
+        } catch (e: Exception) {
+            Log.e("BrainstormiaApp", "❌ ERRO ao recriar BillingViewModel", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+        }
+    }
+
     companion object {
         const val CHANNEL_ID = "brainstormia_notification_channel"
         // NOTIFICATION_TYPE constants are not used in the provided code snippet, can be removed if not used elsewhere
