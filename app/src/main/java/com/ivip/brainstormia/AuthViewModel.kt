@@ -156,18 +156,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         crashlytics.setCustomKey("auth_error", e.message ?: "unknown")
                         crashlytics.setCustomKey("auth_error_code", getFirebaseErrorCode(e))
 
-                        // Tornar o erro fatal
-                        throw RuntimeException("Falha no login com email: ${e.message}", e)
-
                         _authState.value = AuthState.Error(e.message ?: "Login failed")
                     }
             } catch (e: Exception) {
                 Log.e(tag, "AuthViewModel: Exceção de login com email para $email", e)
                 crashlytics.log("Email login exception: ${e.message}")
                 crashlytics.setCustomKey("auth_error", e.message ?: "unknown")
-
-                // Tornar o erro fatal
-                throw RuntimeException("Exceção durante login com email", e)
 
                 _authState.value = AuthState.Error(e.message ?: "Login failed")
             }
@@ -199,18 +193,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         crashlytics.setCustomKey("auth_error", e.message ?: "unknown")
                         crashlytics.setCustomKey("auth_error_code", getFirebaseErrorCode(e))
 
-                        // Tornar o erro fatal
-                        throw RuntimeException("Falha no registro com email: ${e.message}", e)
-
                         _authState.value = AuthState.Error(e.message ?: "Registration failed")
                     }
             } catch (e: Exception) {
                 Log.e(tag, "AuthViewModel: Exceção de registro para $email", e)
                 crashlytics.log("Email registration exception: ${e.message}")
                 crashlytics.setCustomKey("auth_error", e.message ?: "unknown")
-
-                // Tornar o erro fatal
-                throw RuntimeException("Exceção durante registro com email", e)
 
                 _authState.value = AuthState.Error(e.message ?: "Registration failed")
             }
@@ -238,18 +226,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         crashlytics.setCustomKey("auth_error", e.message ?: "unknown")
                         crashlytics.setCustomKey("auth_error_code", getFirebaseErrorCode(e))
 
-                        // Tornar o erro fatal
-                        throw RuntimeException("Falha no reset de senha: ${e.message}", e)
-
                         _authState.value = AuthState.Error(e.message ?: "Password reset failed")
                     }
             } catch (e: Exception) {
                 Log.e(tag, "AuthViewModel: Exceção de reset de senha para $email", e)
                 crashlytics.log("Password reset exception: ${e.message}")
                 crashlytics.setCustomKey("auth_error", e.message ?: "unknown")
-
-                // Tornar o erro fatal
-                throw RuntimeException("Exceção durante reset de senha", e)
 
                 _authState.value = AuthState.Error(e.message ?: "Password reset failed")
             }
@@ -286,8 +268,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             _userMessage.value = "Utilizador não autenticado para atualizar a foto."
             crashlytics.log("Falha na atualização de foto: usuário nulo")
 
-            // Tornar o erro fatal
-            throw RuntimeException("Falha na atualização de foto: usuário nulo")
             return
         }
 
@@ -337,9 +317,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e(tag, "AuthViewModel: updateProfilePicture: Erro de Storage - Código: ${e.errorCode}, Mensagem: ${e.message}", e)
                 crashlytics.setCustomKey("storage_error_code", e.errorCode)
                 crashlytics.setCustomKey("storage_http_code", e.httpResultCode)
-
-                // Tornar o erro fatal
-                throw RuntimeException("Erro de Storage durante atualização de foto: (${e.errorCode}) ${e.httpResultCode}", e)
 
                 var errorMessage = "Erro de Storage: (${e.errorCode}) ${e.httpResultCode} - ${e.message}"
                 // Adicionar mais detalhes baseados no errorCode
