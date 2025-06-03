@@ -1,5 +1,6 @@
 package com.ivip.brainstormia
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.StarOutline
@@ -367,41 +369,6 @@ fun LoadingContent(isDarkTheme: Boolean) {
 }
 
 @Composable
-fun AddCorrectUserButton(
-    isDarkTheme: Boolean,
-    textColor: Color,
-    secondaryTextColor: Color
-) {
-    val context = LocalContext.current
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Título explicativo
-        Text(
-            text = "Problemas com a assinatura?",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = if (isDarkTheme) Color(0xFFFF5252) else Color(0xFFD32F2F),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        // Texto explicativo
-        Text(
-            text = "Foi detectada uma alteração no email do usuário nas verificações de assinatura. " +
-                    "Use o botão abaixo para corrigir o problema.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = secondaryTextColor,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(bottom = 16.dp)
-        )
-    }
-}
-
-@Composable
 fun PremiumContent(
     isDarkTheme: Boolean,
     textColor: Color,
@@ -455,75 +422,9 @@ fun PremiumContent(
 }
 
 @Composable
-fun BasicContent(
-    onUpgradeToPremium: () -> Unit,
-    isDarkTheme: Boolean,
-    textColor: Color,
-    secondaryTextColor: Color,
-    highlightColor: Color
-) {
-    val cardBackgroundColor =
-        if (isDarkTheme) MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp) else MaterialTheme.colorScheme.surface
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        PremiumButton(
-            onClick = onUpgradeToPremium,
-            text = stringResource(R.string.become_premium),
-            isDarkTheme = isDarkTheme
-        )
-        Spacer(modifier = Modifier.height(28.dp))
-        Text(
-            stringResource(R.string.unlock_potential),
-            style = MaterialTheme.typography.headlineSmall,
-            color = highlightColor,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 20.dp)
-        )
-        FeatureCard(
-            title = stringResource(R.string.advanced_ai_models_title),
-            description = stringResource(R.string.advanced_ai_models_desc_basic),
-            icon = Icons.Outlined.AutoAwesome,
-            isDarkTheme = isDarkTheme,
-            cardBackgroundColor = cardBackgroundColor,
-            textColor = textColor,
-            secondaryTextColor = secondaryTextColor,
-            highlightColor = highlightColor,
-            isLocked = true
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        FeatureCard(
-            title = stringResource(R.string.conversation_export_title),
-            description = stringResource(R.string.conversation_export_desc_basic_auto_backup),
-            icon = Icons.Outlined.CloudDownload,
-            isDarkTheme = isDarkTheme,
-            cardBackgroundColor = cardBackgroundColor,
-            textColor = textColor,
-            secondaryTextColor = secondaryTextColor,
-            highlightColor = highlightColor,
-            isLocked = true
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        FeatureCard(
-            title = stringResource(R.string.priority_support_title),
-            description = stringResource(R.string.priority_support_desc_basic),
-            icon = Icons.Outlined.SupportAgent,
-            isDarkTheme = isDarkTheme,
-            cardBackgroundColor = cardBackgroundColor,
-            textColor = textColor,
-            secondaryTextColor = secondaryTextColor,
-            highlightColor = highlightColor,
-            isLocked = true
-        )
-    }
-}
-
-@Composable
 fun FeatureCard(
     title: String,
     description: String,
-    icon: ImageVector,
     isDarkTheme: Boolean,
     cardBackgroundColor: Color,
     textColor: Color,
@@ -531,10 +432,6 @@ fun FeatureCard(
     highlightColor: Color,
     isLocked: Boolean = false
 ) {
-    val iconBg =
-        if (isDarkTheme) highlightColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.primaryContainer
-    val iconTint =
-        if (isDarkTheme) highlightColor else MaterialTheme.colorScheme.primary
     val lockTint =
         if (isDarkTheme) highlightColor.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(
             alpha = 0.6f
@@ -550,44 +447,31 @@ fun FeatureCard(
             MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         ) else null
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                Modifier.size(48.dp).clip(RoundedCornerShape(12.dp))
-                    .background(iconBg),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, title, tint = iconTint, modifier = Modifier.size(28.dp))
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = textColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (isLocked) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            Icons.Filled.Lock,
-                            contentDescription = stringResource(R.string.locked_feature),
-                            tint = lockTint,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = secondaryTextColor,
-                    lineHeight = 20.sp
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
                 )
+                if (isLocked) {
+                    Icon(
+                        Icons.Filled.Lock,
+                        contentDescription = stringResource(R.string.locked_feature),
+                        tint = lockTint,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = secondaryTextColor,
+                lineHeight = 20.sp
+            )
         }
     }
 }
@@ -796,6 +680,30 @@ fun UserProfileScreen(
                         }
                     },
                     actions = {
+                        // Ícone para abrir o site
+                        IconButton(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://stormchat.app"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Log.e("UserProfileScreen", "Erro ao abrir site", e)
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            "Erro ao abrir o site",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Language,
+                                contentDescription = "Abrir site StormChat"
+                            )
+                        }
+
+                        // Botão de refresh
                         IconButton(
                             onClick = {
                                 if (billingViewModel != null) {
@@ -868,6 +776,25 @@ fun UserProfileScreen(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+
+                // ✅ Botão Premium ANTES das configurações (só para usuários básicos)
+                if (!isPremiumUser && !isPremiumLoading) {
+                    PremiumButton(
+                        onClick = navigateToPaymentSafely,
+                        text = stringResource(R.string.become_premium),
+                        isDarkTheme = isDarkTheme
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        stringResource(R.string.unlock_potential),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = primaryColorForTheme,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+                }
 
                 // Card de Configurações
                 Card(
@@ -1017,7 +944,7 @@ fun UserProfileScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Show content based on premium status
+                // ✅ Conteúdo baseado no status premium
                 when {
                     isPremiumLoading -> {
                         LoadingContent(isDarkTheme = isDarkTheme)
@@ -1031,13 +958,47 @@ fun UserProfileScreen(
                         )
                     }
                     else -> {
-                        BasicContent(
-                            onUpgradeToPremium = navigateToPaymentSafely,
-                            isDarkTheme = isDarkTheme,
-                            textColor = currentTextColor,
-                            secondaryTextColor = currentSecondaryTextColor,
-                            highlightColor = primaryColorForTheme
-                        )
+                        // ✅ Para usuários básicos: APENAS os cards de recursos (SEM botão duplicado)
+                        val cardBackgroundColor =
+                            if (isDarkTheme) MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp) else MaterialTheme.colorScheme.surface
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            FeatureCard(
+                                title = stringResource(R.string.advanced_ai_models_title),
+                                description = stringResource(R.string.advanced_ai_models_desc_basic),
+                                isDarkTheme = isDarkTheme,
+                                cardBackgroundColor = cardBackgroundColor,
+                                textColor = currentTextColor,
+                                secondaryTextColor = currentSecondaryTextColor,
+                                highlightColor = primaryColorForTheme,
+                                isLocked = true
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            FeatureCard(
+                                title = stringResource(R.string.conversation_export_title),
+                                description = stringResource(R.string.conversation_export_desc_basic_auto_backup),
+                                isDarkTheme = isDarkTheme,
+                                cardBackgroundColor = cardBackgroundColor,
+                                textColor = currentTextColor,
+                                secondaryTextColor = currentSecondaryTextColor,
+                                highlightColor = primaryColorForTheme,
+                                isLocked = true
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            FeatureCard(
+                                title = stringResource(R.string.priority_support_title),
+                                description = stringResource(R.string.priority_support_desc_basic),
+                                isDarkTheme = isDarkTheme,
+                                cardBackgroundColor = cardBackgroundColor,
+                                textColor = currentTextColor,
+                                secondaryTextColor = currentSecondaryTextColor,
+                                highlightColor = primaryColorForTheme,
+                                isLocked = true
+                            )
+                        }
                     }
                 }
 

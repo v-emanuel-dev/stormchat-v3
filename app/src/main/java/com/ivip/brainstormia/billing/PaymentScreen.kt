@@ -358,9 +358,6 @@ fun SubscriptionPlanCard(
     val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E1E1E) else Color.White
     val borderColor = if (isDarkTheme) highlightColor.copy(alpha = 0.3f) else highlightColor.copy(alpha = 0.5f)
 
-    // Determinar se é o plano mais popular (exemplo: anual)
-    val isPopular = product.productId.contains("anual", ignoreCase = true)
-
     // Obter informações do produto
     val productName = when {
         product.productId.contains("mensal", ignoreCase = true) -> "Plano Mensal"
@@ -396,8 +393,8 @@ fun SubscriptionPlanCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         border = BorderStroke(
-            width = if (isPopular) 2.dp else 1.dp,
-            color = if (isPopular) highlightColor else borderColor
+            width = 1.dp,
+            color = borderColor
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isDarkTheme) 4.dp else 2.dp
@@ -408,28 +405,6 @@ fun SubscriptionPlanCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Badge "Mais Popular" se for plano anual
-            if (isPopular) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = highlightColor,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Text(
-                            text = "MAIS POPULAR",
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-            }
-
             // Nome do plano
             Text(
                 text = productName,
