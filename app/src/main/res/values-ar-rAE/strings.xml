@@ -337,6 +337,10 @@
     <string name="error_opening_file">خطأ في فتح الملف</string>
     <string name="message_with_attachment_hint">إضافة سياق</string>
 
+    <!-- 15. API Limits -->
     <string name="upgrade_to_premium">الترقية إلى النسخة المميزة</string>
+    <string name="error_limit_check_failed">تعذر التحقق من حدود استخدام النموذج في هذا الوقت. يرجى المحاولة مرة أخرى.</string>
+    <string name="error_limit_exceeded_generic">تم الوصول إلى حد استخدام واجهة البرمجة أو حدث خطأ أثناء التحقق من الحدود. يرجى المحاولة لاحقًا.</string>
+    <string name="error_limit_exceeded_model">لقد وصلت إلى حد الاستخدام لنموذج %1$s. يرجى المحاولة مرة أخرى غدًا أو اختيار نموذج آخر.</string>
 
 </resources>

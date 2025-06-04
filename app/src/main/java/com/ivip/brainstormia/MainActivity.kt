@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -52,6 +53,7 @@ import com.ivip.brainstormia.auth.GoogleSignInManager
 import com.ivip.brainstormia.billing.BillingViewModel
 import com.ivip.brainstormia.billing.PaymentScreen
 import com.ivip.brainstormia.navigation.Routes
+import com.ivip.brainstormia.screens.UsageLimitsScreen
 import com.ivip.brainstormia.theme.BrainstormiaTheme
 import com.ivip.brainstormia.theme.PrimaryColor
 import com.ivip.brainstormia.theme.TopBarColorDark
@@ -341,6 +343,10 @@ class MainActivity : ComponentActivity() {
                                     onLogin         = { launchLogin() },
                                     onLogout        = { authViewModel.logout() },
                                     onNavigateToProfile = { navController.navigate(Routes.USER_PROFILE) },
+                                    onNavigateToUsageLimits = {
+                                        Log.d("MainActivity", "Navegando para limites via ChatScreen")
+                                        navController.navigate(Routes.USAGE_LIMITS)
+                                    },
                                     chatViewModel   = chatViewModelInstance,
                                     authViewModel   = authViewModel,
                                     exportViewModel = exportViewModelInstance,
@@ -366,6 +372,11 @@ class MainActivity : ComponentActivity() {
                                                 Toast.LENGTH_LONG
                                             ).show()
                                         }
+                                    },
+                                    // ✅ NOVO: Adicionar navegação para limites de uso
+                                    onNavigateToUsageLimits = {
+                                        Log.d("MainActivity", "Navegando para tela de limites de uso")
+                                        navController.navigate(Routes.USAGE_LIMITS)
                                     },
                                     authViewModel = authViewModel,
                                     isDarkTheme = isDarkThemeEnabled
@@ -420,6 +431,17 @@ class MainActivity : ComponentActivity() {
                                         isDarkTheme = isDarkThemeEnabled
                                     )
                                 }
+                            }
+
+                            // ✅ NOVA ROTA: Tela de limites de uso
+                            composable(Routes.USAGE_LIMITS) {
+                                UsageLimitsScreen(
+                                    onBack = {
+                                        Log.d("MainActivity", "Voltando da tela de limites de uso")
+                                        navController.popBackStack()
+                                    },
+                                    isDarkTheme = isDarkThemeEnabled
+                                )
                             }
                         }
                     }

@@ -38,8 +38,8 @@ android {
         applicationId = "com.ivip.brainstormia"
         minSdk = 26
         targetSdk = 35
-        versionCode = 101
-        versionName = "10.1"
+        versionCode = 102
+        versionName = "10.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // API Keys existentes
@@ -310,7 +310,6 @@ dependencies {
 
     /* ---------- Backend ---------- */
     implementation("androidx.security:security-crypto:1.1.0-alpha07")
-    implementation("androidx.security:security-crypto:1.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 

@@ -777,6 +777,7 @@ fun ChatScreen(
     onLogin: () -> Unit = {},
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToUsageLimits: () -> Unit = {},
     chatViewModel: ChatViewModel,
     authViewModel: AuthViewModel = viewModel(),
     exportViewModel: ExportViewModel,
@@ -1068,6 +1069,13 @@ fun ChatScreen(
                     conversationIdToExport = conversationId
                 },
                 onNavigateToProfile = onNavigateToProfile,
+                onNavigateToUsageLimits = {
+                    coroutineScope.launch {
+                        drawerState.close()
+                        // Navegar para a tela de limites via MainActivity
+                        onNavigateToUsageLimits()
+                    }
+                },
                 isDarkTheme = isDarkTheme,
                 onThemeChanged = onThemeChanged,
                 chatViewModel = chatViewModel

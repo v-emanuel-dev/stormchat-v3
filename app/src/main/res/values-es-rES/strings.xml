@@ -337,6 +337,10 @@
     <string name="error_opening_file">Error al abrir el archivo</string>
     <string name="message_with_attachment_hint">Añadir contexto</string>
 
+    <!-- 15. API Limits -->
     <string name="upgrade_to_premium">Actualizar a Premium</string>
+    <string name="error_limit_check_failed">No se pudieron verificar los límites de uso del modelo en este momento. Por favor, inténtalo de nuevo.</string>
+    <string name="error_limit_exceeded_generic">Se ha alcanzado un límite de uso de la API o ha ocurrido un error al verificar los límites. Por favor, inténtalo más tarde.</string>
+    <string name="error_limit_exceeded_model">Has alcanzado el límite de uso para el modelo %1$s. Inténtalo de nuevo mañana o selecciona otro modelo.</string>
 
 </resources>

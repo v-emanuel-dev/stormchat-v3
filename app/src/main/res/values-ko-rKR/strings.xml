@@ -337,6 +337,10 @@
     <string name="error_opening_file">파일 열기 오류</string>
     <string name="message_with_attachment_hint">컨텍스트 추가</string>
 
+    <!-- 15. API Limits -->
     <string name="upgrade_to_premium">프리미엄으로 업그레이드</string>
+    <string name="error_limit_check_failed">현재 모델 사용 한도를 확인할 수 없습니다. 다시 시도해 주세요.</string>
+    <string name="error_limit_exceeded_generic">API 사용 한도에 도달했거나 한도 확인 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_limit_exceeded_model">%1$s 모델의 사용 한도에 도달했습니다. 내일 다시 시도하거나 다른 모델을 선택해 주세요.</string>
 
 </resources>

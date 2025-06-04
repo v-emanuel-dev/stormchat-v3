@@ -60,6 +60,10 @@ import com.ivip.brainstormia.theme.TextColorLight
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Analytics
+
+// SUBSTITUIR a função AppDrawerContent completa no arquivo AppDrawerContent.kt
 
 @Composable
 fun AppDrawerContent(
@@ -71,17 +75,16 @@ fun AppDrawerContent(
     onRenameConversationRequest: (Long) -> Unit,
     onExportConversationRequest: (Long) -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToUsageLimits: () -> Unit = {}, // ✅ NOVO PARÂMETRO
     isDarkTheme: Boolean,
     onThemeChanged: (Boolean) -> Unit = {},
     chatViewModel: ChatViewModel = viewModel(),
-    authViewModel: AuthViewModel = viewModel() // Adicionado para acessar o usuário atual
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val backgroundColor = if (isDarkTheme) Color(0xFF121212) else BackgroundColor
     val textColor = if (isDarkTheme) TextColorLight else TextColorDark
     val selectedItemColor = if (isDarkTheme) PrimaryColor.copy(alpha = 0.2f) else PrimaryColor.copy(alpha = 0.1f)
-    val currentUser by authViewModel.currentUser.collectAsState() // Obtém o usuário atual
-    val selectedModel by chatViewModel.selectedModel.collectAsState()
-    val isPremiumUser by chatViewModel.isPremiumUser.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
 
     Column(
         modifier = Modifier
@@ -105,7 +108,6 @@ fun AppDrawerContent(
                 color = textColor
             )
 
-            // Add ThemeSwitch here
             ThemeSwitch(
                 isDarkTheme = isDarkTheme,
                 onThemeChanged = onThemeChanged,
@@ -144,17 +146,16 @@ fun AppDrawerContent(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lista de conversas - Adicionamos uma key para forçar recomposição
+        // Lista de conversas
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            state = rememberLazyListState() // Adicionar um estado explícito
+            state = rememberLazyListState()
         ) {
-            // Em vez de usar key(), usamos items com o parâmetro key
             items(
                 items = conversationDisplayItems.sortedByDescending { it.lastTimestamp },
-                key = { it.id } // Garantir que cada item tenha uma chave única
+                key = { it.id }
             ) { item ->
                 val isSelected = item.id == currentConversationId
                 val itemBackgroundColor = if (isSelected) selectedItemColor else Color.Transparent
@@ -173,8 +174,6 @@ fun AppDrawerContent(
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Removido o ícone baseado no tipo de conversa
-
                         Column(
                             modifier = Modifier.weight(1f)
                         ) {
@@ -197,15 +196,12 @@ fun AppDrawerContent(
                             )
                         }
 
-                        // Cor padronizada para todos os ícones de ação
                         val actionIconTint = if (isDarkTheme) Color.LightGray else PrimaryColor.copy(alpha = 0.7f)
 
-                        // Ações em um espaço mais compacto
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp) // Diminuir espaçamento
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            // Ícones menores e mais compactos
                             IconButton(
                                 onClick = { onRenameConversationRequest(item.id) },
                                 modifier = Modifier.size(24.dp)
@@ -250,6 +246,187 @@ fun AppDrawerContent(
                 }
             }
         }
+
+        // Separador antes dos botões de configuração
+        Divider(
+            color = if (isDarkTheme) Color.DarkGray.copy(alpha = 0.5f) else Color.LightGray.copy(alpha = 0.7f),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        // ✅ NOVO: Botão de Limites de Uso (apenas para usuários logados)
+        if (currentUser != null) {
+            OutlinedButton(
+                onClick = { onNavigateToUsageLimits() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .height(44.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = if (isDarkTheme) TextColorLight else TextColorDark,
+                    containerColor = if (isDarkTheme) Color(0xFF1A1A1A) else Color.White
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = if (isDarkTheme) Color.DarkGray.copy(alpha = 0.7f) else Color.LightGray
+                )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Analytics,
+                        contentDescription = "Limites de Uso",
+                        tint = if (isDarkTheme) Color(0xFFFFD700) else PrimaryColor.copy(alpha = 0.8f),
+                        modifier = Modifier.size(20.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = "Limites de Uso",
+                        color = if (isDarkTheme) TextColorLight else TextColorDark,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = if (isDarkTheme) Color.LightGray else PrimaryColor.copy(alpha = 0.7f),
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+
+        // Botão de perfil do usuário
+        if (currentUser != null) {
+            val context = LocalContext.current
+            OutlinedButton(
+                onClick = { onNavigateToProfile() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = if (isDarkTheme) TextColorLight else TextColorDark,
+                    containerColor = if (isDarkTheme) Color(0xFF1A1A1A) else Color.White
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = if (isDarkTheme) Color.DarkGray.copy(alpha = 0.7f) else Color.LightGray
+                )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    if (currentUser?.photoUrl != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(currentUser?.photoUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = stringResource(R.string.profile_photo),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isDarkTheme) Color.DarkGray else Color.LightGray,
+                                    shape = CircleShape
+                                )
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = stringResource(R.string.profile),
+                            tint = if (isDarkTheme) Color.LightGray else PrimaryColor.copy(alpha = 0.8f),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = currentUser?.email ?: stringResource(R.string.email_not_available),
+                        color = if (isDarkTheme) TextColorLight else TextColorDark,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = if (isDarkTheme) Color.LightGray else PrimaryColor.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        } else {
+            OutlinedButton(
+                onClick = { onNavigateToProfile() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = if (isDarkTheme) TextColorLight else TextColorDark,
+                    containerColor = if (isDarkTheme) Color(0xFF1A1A1A) else Color.White
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = if (isDarkTheme) Color.DarkGray.copy(alpha = 0.7f) else Color.LightGray
+                )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Perfil do usuário",
+                        tint = if (isDarkTheme) Color.LightGray else PrimaryColor.copy(alpha = 0.8f),
+                        modifier = Modifier.size(28.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = "Fazer login",
+                        color = if (isDarkTheme) TextColorLight else TextColorDark,
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = if (isDarkTheme) Color.LightGray else PrimaryColor.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+    }
+
 
         // Separador antes do botão de perfil
         Divider(
@@ -382,7 +559,7 @@ fun AppDrawerContent(
             }
         }
     }
-}
+
 
 // Extensão para aplicar alpha à cor
 private fun Modifier.alpha(alpha: Float): Modifier {

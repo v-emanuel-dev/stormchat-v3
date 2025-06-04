@@ -337,6 +337,10 @@
     <string name="error_opening_file">打开文件时出错</string>
     <string name="message_with_attachment_hint">添加上下文</string>
 
+    <!-- 15. API Limits -->
     <string name="upgrade_to_premium">升级到高级版</string>
+    <string name="error_limit_check_failed">目前无法验证模型的使用限制。请稍后再试。</string>
+    <string name="error_limit_exceeded_generic">API 使用限制已达到，或在检查限制时发生错误。请稍后再试。</string>
+    <string name="error_limit_exceeded_model">您已达到 %1$s 模型的使用限制。请明天再试或选择其他模型。</string>
 
 </resources>

@@ -337,6 +337,10 @@
     <string name="error_opening_file">फ़ाइल खोलने में त्रुटि</string>
     <string name="message_with_attachment_hint">संदर्भ जोड़ें</string>
 
+    <!-- 15. API Limits -->
     <string name="upgrade_to_premium">प्रीमियम में अपग्रेड करें</string>
+    <string name="error_limit_check_failed">इस समय मॉडल उपयोग सीमा की पुष्टि नहीं हो सकी। कृपया पुनः प्रयास करें।</string>
+    <string name="error_limit_exceeded_generic">API उपयोग सीमा पूरी हो गई है या सीमाएं जांचते समय कोई त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें।</string>
+    <string name="error_limit_exceeded_model">आपने %1$s मॉडल के लिए उपयोग सीमा पूरी कर ली है। कृपया कल पुनः प्रयास करें या कोई अन्य मॉडल चुनें।</string>
 
 </resources>

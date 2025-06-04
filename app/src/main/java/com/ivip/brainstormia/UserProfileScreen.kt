@@ -35,7 +35,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Language
@@ -532,6 +534,7 @@ fun PremiumButton(onClick: () -> Unit, text: String, isDarkTheme: Boolean) {
 fun UserProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPayment: () -> Unit,
+    onNavigateToUsageLimits: () -> Unit,  // NOVO PARÂMETRO
     authViewModel: AuthViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel(),
     isDarkTheme: Boolean = true
@@ -794,6 +797,61 @@ fun UserProfileScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 20.dp)
                     )
+                }
+
+                // ✅ NOVO: Botão de Limites de Uso (para todos os usuários logados)
+                if (currentUser != null) {
+                    val cardColor = if (isDarkTheme) MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp) else MaterialTheme.colorScheme.surface
+                    val cardElevation = if (isDarkTheme) 2.dp else 3.dp
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .clickable { onNavigateToUsageLimits() },
+                        colors = CardDefaults.cardColors(containerColor = cardColor),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Analytics,
+                                contentDescription = "Limites de Uso",
+                                tint = if (isDarkTheme) Color(0xFFFFD700) else Color(0xFF1976D2),
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Limites de Uso",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = currentTextColor
+                                )
+
+                                Text(
+                                    text = "Visualizar uso dos modelos de IA",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = currentSecondaryTextColor
+                                )
+                            }
+
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Ir para limites",
+                                tint = currentSecondaryTextColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 // Card de Configurações

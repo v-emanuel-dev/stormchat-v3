@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.brainstormia.ConversationType
 import com.google.firebase.auth.FirebaseAuth
 import com.ivip.brainstormia.api.ApiClient
+import com.ivip.brainstormia.api.ApiService
 import com.ivip.brainstormia.api.ValidationResponse
 import com.ivip.brainstormia.auth.TokenManager
 import com.ivip.brainstormia.data.db.AppDatabase
@@ -80,15 +81,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val googleAIClient = GoogleAIClient(BuildConfig.GOOGLE_API_KEY)
     private val anthropicClient = AnthropicClient(BuildConfig.ANTHROPIC_API_KEY)
 
+    // ADICIONAR AQUI:
+    private val tokenManager = TokenManager(application.applicationContext)
+    private val apiService = ApiService(tokenManager)
+
     private val auth = FirebaseAuth.getInstance()
     private val appDb = AppDatabase.getDatabase(application)
     private val chatDao: ChatDao = appDb.chatDao()
     private val metadataDao: ConversationMetadataDao = appDb.conversationMetadataDao()
     private val modelPreferenceDao: ModelPreferenceDao = appDb.modelPreferenceDao()
     private val context = application.applicationContext
-
     private val apiClient = ApiClient()
-    private val tokenManager = TokenManager(application.applicationContext)
 
     // Image generation manager
     private val imageGenerationManager = ImageGenerationManager(application)
@@ -188,7 +191,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             isPremium = true
         ),
         AIModel(
-            id = "gpt-4.1-,mini",
+            id = "gpt-4.1-mini",
             displayName = "GPT-4.1 Mini",
             apiEndpoint = "gpt-4.1-mini",
             provider = AIProvider.OPENAI,
@@ -540,12 +543,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Envia uma mensagem com arquivo anexado
-     */
-    /**
-     * Envia uma mensagem com arquivo anexado
-     */
     fun sendMessageWithAttachment(userMessageText: String, attachment: FileAttachment) {
         if (_loadingState.value == LoadingState.LOADING) {
             Log.w("ChatViewModel", "sendMessageWithAttachment cancelled: Already loading.")
@@ -553,6 +550,34 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        // VERIFICAÇÃO DE LIMITES ANTES DE PROCESSAR MENSAGEM COM ANEXO
+        viewModelScope.launch {
+            // Verificar limites antes de processar
+            val currentModel = _selectedModel.value
+            val limitCheck = checkModelUsageLimits(currentModel.apiEndpoint)
+
+            limitCheck.fold(
+                onSuccess = { canProceed ->
+                    if (canProceed) {
+                        // Continuar com a lógica original
+                        processSendMessageWithAttachment(userMessageText, attachment)
+                    } else {
+                        // Limite excedido, erro já foi mostrado
+                        Log.w("ChatViewModel", "sendMessageWithAttachment cancelled: Usage limit exceeded")
+                    }
+                },
+                onFailure = {
+                    // Limite excedido, não enviar mensagem
+                    Log.w("ChatViewModel", "sendMessageWithAttachment cancelled: Usage limit exceeded")
+                }
+            )
+        }
+    }
+
+    /**
+     * Processa o envio de mensagem com anexo após verificação de limites
+     */
+    private fun processSendMessageWithAttachment(userMessageText: String, attachment: FileAttachment) {
         _loadingState.value = LoadingState.LOADING
         _errorMessage.value = null
 
@@ -582,7 +607,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         if (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID) {
-            Log.e("ChatViewModel", "sendMessageWithAttachment Error: Invalid targetConversationId")
+            Log.e("ChatViewModel", "processSendMessageWithAttachment Error: Invalid targetConversationId")
             _errorMessage.value = context.getString(R.string.error_internal_conversation)
             _loadingState.value = LoadingState.IDLE
             return
@@ -701,6 +726,29 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     _errorMessage.value = "Erro ao processar mensagem com anexo: ${e.message}"
                     _loadingState.value = LoadingState.ERROR
                 }
+            }
+        }
+    }
+
+    /**
+     * Atualizar informações de limites de uso (para usar na UI se necessário)
+     */
+    fun refreshUsageLimits() {
+        viewModelScope.launch {
+            try {
+                val result = apiService.getAllModelsUsage()
+                result.fold(
+                    onSuccess = { allUsage ->
+                        Log.d(TAG, "Limites de uso atualizados: ${allUsage.usage.size} modelos")
+                        // Você pode criar um StateFlow para expor estes dados à UI se necessário
+                        // Por exemplo: _usageLimits.value = allUsage
+                    },
+                    onFailure = { error ->
+                        Log.e(TAG, "Erro ao atualizar limites: ${error.message}")
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exceção ao atualizar limites: ${e.message}")
             }
         }
     }
@@ -1300,6 +1348,52 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 Log.d("backend", "❌ ERRO NA VERIFICAÇÃO LOCAL")
                 Log.d("backend", "Erro: ${e.message}")
                 Log.d("backend", "Duração: ${endTime - startTime}ms")
+            }
+        }
+    }
+
+    // ADICIONAR ESTE MÉTODO COMPLETO:
+    /**
+     * Verificar limites de uso para um modelo específico antes de enviar mensagem
+     */
+    private suspend fun checkModelUsageLimits(modelName: String): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Verificando limites para modelo: $modelName")
+
+                val result = apiService.checkAndIncrementModelUsage(modelName)
+                result.fold(
+                    onSuccess = { usageInfo ->
+                        Log.d(TAG, "Limites verificados: ${usageInfo.current}/${usageInfo.limit}")
+                        if (usageInfo.remaining > 0) {
+                            Result.success(true)
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                val resetDate = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                                    .format(Date(usageInfo.resetAt))
+
+                                _errorMessage.value = if (_isPremiumUser.value) {
+                                    "Limite diário atingido para ${_selectedModel.value.displayName}. " +
+                                            "Próximo reset: $resetDate"
+                                } else {
+                                    "Limite diário atingido para ${_selectedModel.value.displayName}. " +
+                                            "Faça upgrade para Premium para limites maiores. " +
+                                            "Próximo reset: $resetDate"
+                                }
+                            }
+                            Result.failure(Exception("USAGE_LIMIT_EXCEEDED"))
+                        }
+                    },
+                    onFailure = { error ->
+                        Log.e(TAG, "Erro ao verificar limites: ${error.message}")
+                        // Em caso de erro na verificação, permitir o uso (fail-safe)
+                        Result.success(true)
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exceção ao verificar limites: ${e.message}")
+                // Em caso de exceção, permitir o uso (fail-safe)
+                Result.success(true)
             }
         }
     }
@@ -2026,9 +2120,36 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
         // --- FIM DA LÓGICA DE COMANDO DE IMAGEM ---
 
-        // Lógica original de envio de mensagem de texto (se não for comando de imagem)
+        // VERIFICAÇÃO DE LIMITES ANTES DE PROCESSAR MENSAGEM DE TEXTO
+        viewModelScope.launch {
+            // Verificar limites antes de processar
+            val currentModel = _selectedModel.value
+            val limitCheck = checkModelUsageLimits(currentModel.apiEndpoint)
+
+            limitCheck.fold(
+                onSuccess = { canProceed ->
+                    if (canProceed) {
+                        // Continuar com a lógica original
+                        processSendMessage(userMessageText)
+                    } else {
+                        // Limite excedido, erro já foi mostrado em checkModelUsageLimits
+                        Log.w("ChatViewModel", "sendMessage cancelled: Usage limit exceeded")
+                    }
+                },
+                onFailure = {
+                    // Limite excedido, não enviar mensagem
+                    Log.w("ChatViewModel", "sendMessage cancelled: Usage limit exceeded")
+                }
+            )
+        }
+    }
+
+    /**
+     * Processa o envio de mensagem de texto após verificação de limites
+     */
+    private fun processSendMessage(userMessageText: String) {
         if (_loadingState.value == LoadingState.LOADING) {
-            Log.w("ChatViewModel", "sendMessage cancelled: Already loading (text message).")
+            Log.w("ChatViewModel", "processSendMessage cancelled: Already loading (text message).")
             _errorMessage.value = context.getString(R.string.error_wait_previous)
             return
         }
@@ -2061,14 +2182,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         if (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID) {
-            Log.e("ChatViewModel", "sendMessage Error: Invalid targetConversationId ($targetConversationId) after new conversation logic for text message.")
+            Log.e("ChatViewModel", "processSendMessage Error: Invalid targetConversationId ($targetConversationId) after new conversation logic for text message.")
             _errorMessage.value = context.getString(R.string.error_internal_conversation)
             _loadingState.value = LoadingState.IDLE
             return
         }
 
         val userUiMessage = com.ivip.brainstormia.ChatMessage(userMessageText, Sender.USER)
-        saveMessageToDb(userUiMessage, targetConversationId!!, timestamp) // ESTA É A SUA ÚNICA FUNÇÃO saveMessageToDb
+        saveMessageToDb(userUiMessage, targetConversationId!!, timestamp)
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
