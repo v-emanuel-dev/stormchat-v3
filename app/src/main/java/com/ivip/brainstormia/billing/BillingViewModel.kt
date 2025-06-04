@@ -289,18 +289,20 @@ class BillingViewModel private constructor(application: Application) :
     private suspend fun verifyWithFirebase(): Pair<Boolean, String?> {
         return try {
             val currentUser = FirebaseAuth.getInstance().currentUser ?: return Pair(false, null)
-            val userEmail = currentUser.email ?: currentUser.uid
+
+            // ✅ CORREÇÃO: Usar UID ao invés de email
+            val documentId = currentUser.uid  // ← MUDANÇA CRÍTICA
 
             val doc = Firebase.firestore
                 .collection("premium_users")
-                .document(userEmail)
+                .document(documentId)  // ← Agora usa UID consistentemente
                 .get()
                 .await()
 
             val isPremium = doc.getBoolean("isPremium") ?: false
             val planType = doc.getString("planType")
 
-            Log.i(TAG, "📱 Firebase: Premium=$isPremium, Plano=$planType")
+            Log.i(TAG, "📱 Firebase: Premium=$isPremium, Plano=$planType (UID: $documentId)")
             Pair(isPremium, planType)
 
         } catch (e: Exception) {
@@ -581,7 +583,9 @@ class BillingViewModel private constructor(application: Application) :
         productId: String? = null
     ) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return
-        val userEmail = currentUser.email ?: currentUser.uid
+
+        // ✅ CORREÇÃO: Usar UID ao invés de email
+        val documentId = currentUser.uid  // ← MUDANÇA CRÍTICA
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -590,7 +594,7 @@ class BillingViewModel private constructor(application: Application) :
                     "planType" to planType,
                     "updatedAt" to FieldValue.serverTimestamp(),
                     "userId" to currentUser.uid,
-                    "userEmail" to userEmail
+                    "userEmail" to (currentUser.email ?: "no-email")  // ← Salvar email como campo, não chave
                 )
 
                 // Adiciona dados de compra se disponíveis
@@ -600,11 +604,11 @@ class BillingViewModel private constructor(application: Application) :
 
                 Firebase.firestore
                     .collection("premium_users")
-                    .document(userEmail)
+                    .document(documentId)  // ← Agora usa UID consistentemente
                     .set(data, SetOptions.merge())
                     .await()
 
-                Log.i(TAG, "✅ Firebase atualizado")
+                Log.i(TAG, "✅ Firebase atualizado para UID: $documentId")
 
             } catch (e: Exception) {
                 Log.e(TAG, "Erro ao atualizar Firebase: ${e.message}")
@@ -621,7 +625,7 @@ class BillingViewModel private constructor(application: Application) :
             val cachedUid = prefs.getString("cached_uid", null)
             val currentUid = FirebaseAuth.getInstance().currentUser?.uid
 
-            // Verifica se é o mesmo usuário
+            // ✅ Verifica se é o mesmo usuário (por UID, não email)
             if (cachedUid == currentUid && currentUid != null) {
                 val isPremium = prefs.getBoolean("is_premium", false)
                 val planType = prefs.getString("plan_type", null)
@@ -630,10 +634,15 @@ class BillingViewModel private constructor(application: Application) :
                 _userPlanType.value = planType
                 cachedUserId = cachedUid
 
-                Log.d(TAG, "Cache carregado: Premium=$isPremium, Plano=$planType")
+                Log.d(TAG, "Cache carregado para UID $currentUid: Premium=$isPremium, Plano=$planType")
+            } else {
+                Log.d(TAG, "Cache invalidado: UID mudou de $cachedUid para $currentUid")
+                // Limpar cache inválido
+                clearCache()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao carregar cache: ${e.message}")
+            clearCache()
         }
     }
 
@@ -646,14 +655,32 @@ class BillingViewModel private constructor(application: Application) :
 
             getApplication<Application>().getSharedPreferences("billing_prefs", Context.MODE_PRIVATE)
                 .edit()
-                .putString("cached_uid", currentUid)
+                .putString("cached_uid", currentUid)  // ✅ Salvar UID, não email
                 .putBoolean("is_premium", isPremium)
                 .putString("plan_type", planType)
                 .putLong("last_check", System.currentTimeMillis())
                 .apply()
 
+            Log.d(TAG, "Cache salvo para UID $currentUid: Premium=$isPremium")
+
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao salvar cache: ${e.message}")
+        }
+    }
+
+    private fun clearCache() {
+        try {
+            getApplication<Application>().getSharedPreferences("billing_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply()
+
+            cachedUserId = null
+            lastVerificationTime = 0
+
+            Log.d(TAG, "Cache limpo")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao limpar cache: ${e.message}")
         }
     }
 
