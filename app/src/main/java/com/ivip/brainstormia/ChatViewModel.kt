@@ -98,7 +98,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // Image generation state flows
     private val _imageGenerationState = MutableStateFlow<ImageGenerationResult?>(null)
-    val imageGenerationState: StateFlow<ImageGenerationResult?> = _imageGenerationState.asStateFlow()
+    val imageGenerationState: StateFlow<ImageGenerationResult?> =
+        _imageGenerationState.asStateFlow()
 
     private val _generatedImageUri = MutableStateFlow<Uri?>(null)
     val generatedImageUri: StateFlow<Uri?> = _generatedImageUri.asStateFlow()
@@ -267,7 +268,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentImagePrompt = MutableStateFlow<String?>(null)
     val currentImagePrompt: StateFlow<String?> = _currentImagePrompt.asStateFlow()
 
-    private val fileProcessingManager = FileProcessingManager(getApplication<Application>().applicationContext)
+    private val fileProcessingManager =
+        FileProcessingManager(getApplication<Application>().applicationContext)
 
     private val _userPlanType = MutableStateFlow<String?>(null)
     val userPlanType: StateFlow<String?> = _userPlanType.asStateFlow()
@@ -352,7 +354,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 // ✅ LOGS BACKEND - ANÁLISE DA RESPOSTA
                 if (validationResponse.hasAccess) {
                     Log.d("backend", "✅ ACESSO PREMIUM CONFIRMADO")
-                    Log.d("backend", "Tipo de assinatura: \"${validationResponse.subscriptionType}\"")
+                    Log.d(
+                        "backend",
+                        "Tipo de assinatura: \"${validationResponse.subscriptionType}\""
+                    )
                     Log.d("backend", "Data de expiração: \"${validationResponse.expirationDate}\"")
                 } else {
                     Log.d("backend", "❌ ACESSO PREMIUM NEGADO")
@@ -381,19 +386,26 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
                     if (validationResponse.hasAccess) {
                         // Mapear tipo de assinatura do backend para formato local
-                        val localPlanType = when (validationResponse.subscriptionType?.lowercase()) {
-                            "monthly" -> "Monthly plan"
-                            "annual" -> "Annual Plan"
-                            "lifetime" -> "Lifetime"
-                            else -> validationResponse.subscriptionType
-                        }
+                        val localPlanType =
+                            when (validationResponse.subscriptionType?.lowercase()) {
+                                "monthly" -> "Monthly plan"
+                                "annual" -> "Annual Plan"
+                                "lifetime" -> "Lifetime"
+                                else -> validationResponse.subscriptionType
+                            }
                         _userPlanType.value = localPlanType
 
                         Log.d("backend", "✅ ESTADO ATUALIZADO PARA PREMIUM")
                         Log.d("backend", "Novo plano: \"$localPlanType\"")
-                        Log.d("backend", "Mapeamento: \"${validationResponse.subscriptionType}\" → \"$localPlanType\"")
+                        Log.d(
+                            "backend",
+                            "Mapeamento: \"${validationResponse.subscriptionType}\" → \"$localPlanType\""
+                        )
 
-                        Log.i("ChatViewModel", "✅ Backend confirmou: Premium=true, Plano=$localPlanType")
+                        Log.i(
+                            "ChatViewModel",
+                            "✅ Backend confirmou: Premium=true, Plano=$localPlanType"
+                        )
                     } else {
                         _userPlanType.value = null
 
@@ -416,7 +428,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     // Validar modelo atual baseado no resultado
                     validateCurrentModel(validationResponse.hasAccess)
 
-                    Log.d("backend", "Modelo pós-validação: \"${_selectedModel.value.displayName}\"")
+                    Log.d(
+                        "backend",
+                        "Modelo pós-validação: \"${_selectedModel.value.displayName}\""
+                    )
                     Log.d("backend", "==============================")
                 }
 
@@ -490,7 +505,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             // Tentar obter o tipo a partir da extensão
                             val extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
                             if (extension != null) {
-                                fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: ""
+                                fileType =
+                                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                                        ?: ""
                             }
                         }
                     }
@@ -563,12 +580,18 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         processSendMessageWithAttachment(userMessageText, attachment)
                     } else {
                         // Limite excedido, erro já foi mostrado
-                        Log.w("ChatViewModel", "sendMessageWithAttachment cancelled: Usage limit exceeded")
+                        Log.w(
+                            "ChatViewModel",
+                            "sendMessageWithAttachment cancelled: Usage limit exceeded"
+                        )
                     }
                 },
                 onFailure = {
                     // Limite excedido, não enviar mensagem
-                    Log.w("ChatViewModel", "sendMessageWithAttachment cancelled: Usage limit exceeded")
+                    Log.w(
+                        "ChatViewModel",
+                        "sendMessageWithAttachment cancelled: Usage limit exceeded"
+                    )
                 }
             )
         }
@@ -577,18 +600,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Processa o envio de mensagem com anexo após verificação de limites
      */
-    private fun processSendMessageWithAttachment(userMessageText: String, attachment: FileAttachment) {
+    private fun processSendMessageWithAttachment(
+        userMessageText: String,
+        attachment: FileAttachment
+    ) {
         _loadingState.value = LoadingState.LOADING
         _errorMessage.value = null
 
         val timestamp = System.currentTimeMillis()
         var targetConversationId = _currentConversationId.value
         val userId = _userIdFlow.value
-        val isStartingNewConversation = (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID)
+        val isStartingNewConversation =
+            (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID)
 
         if (isStartingNewConversation) {
             targetConversationId = timestamp
-            Log.i("ChatViewModel", "Action: Creating new conversation for message with attachment, ID: $targetConversationId")
+            Log.i(
+                "ChatViewModel",
+                "Action: Creating new conversation for message with attachment, ID: $targetConversationId"
+            )
             _currentConversationId.value = targetConversationId
             viewModelScope.launch(Dispatchers.IO) {
                 try {
@@ -599,15 +629,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             userId = userId
                         )
                     )
-                    Log.d("ChatViewModel", "Initial metadata saved for new conversation $targetConversationId")
+                    Log.d(
+                        "ChatViewModel",
+                        "Initial metadata saved for new conversation $targetConversationId"
+                    )
                 } catch (e: Exception) {
-                    Log.e("ChatViewModel", "Error saving initial metadata for new conv $targetConversationId", e)
+                    Log.e(
+                        "ChatViewModel",
+                        "Error saving initial metadata for new conv $targetConversationId",
+                        e
+                    )
                 }
             }
         }
 
         if (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID) {
-            Log.e("ChatViewModel", "processSendMessageWithAttachment Error: Invalid targetConversationId")
+            Log.e(
+                "ChatViewModel",
+                "processSendMessageWithAttachment Error: Invalid targetConversationId"
+            )
             _errorMessage.value = context.getString(R.string.error_internal_conversation)
             _loadingState.value = LoadingState.IDLE
             return
@@ -626,7 +666,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val currentMessagesFromDb = chatDao.getMessagesForConversation(targetConversationId!!, userId).first()
+                val currentMessagesFromDb =
+                    chatDao.getMessagesForConversation(targetConversationId!!, userId).first()
                 val historyMessages = mapEntitiesToUiMessages(currentMessagesFromDb)
                     .takeLast(MAX_HISTORY_MESSAGES)
 
@@ -650,7 +691,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             attachment.type
                         )
                     } else {
-                        Log.w("ChatViewModel", "Arquivo não encontrado nem no caminho local nem na URI")
+                        Log.w(
+                            "ChatViewModel",
+                            "Arquivo não encontrado nem no caminho local nem na URI"
+                        )
                         fileContent = "Arquivo não encontrado ou não acessível"
                     }
                 } catch (e: Exception) {
@@ -712,7 +756,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
 
-                Log.d("ChatViewModel", "API Call (with attachment): Sending message to API for conv $targetConversationId")
+                Log.d(
+                    "ChatViewModel",
+                    "API Call (with attachment): Sending message to API for conv $targetConversationId"
+                )
                 callOpenAIApi(augmentedUserMessage, historyMessages, targetConversationId!!)
 
                 // Limpar o anexo atual após o envio
@@ -760,7 +807,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (size <= 0) return "0 B"
         val units = arrayOf("B", "KB", "MB", "GB", "TB")
         val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
-        return DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
+        return DecimalFormat("#,##0.#").format(
+            size / Math.pow(
+                1024.0,
+                digitGroups.toDouble()
+            )
+        ) + " " + units[digitGroups]
     }
 
     /**
@@ -806,7 +858,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Verificar se há aplicativos para abrir este tipo de arquivo
                 val packageManager = context.packageManager
-                val activities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                val activities =
+                    packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
 
                 if (activities.size > 0) {
                     // Há aplicativos que podem abrir este arquivo
@@ -814,7 +867,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     // Nenhum aplicativo encontrado
                     withContext(Dispatchers.Main) {
-                        _errorMessage.value = "Nenhum aplicativo encontrado para abrir este tipo de arquivo."
+                        _errorMessage.value =
+                            "Nenhum aplicativo encontrado para abrir este tipo de arquivo."
                     }
                 }
 
@@ -833,6 +887,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun selectModel(model: AIModel) {
+        Log.d(
+            "ChatViewModel",
+            "[LOG] selectModel() chamado. Modelo atual: ${_selectedModel.value.displayName}, Novo modelo: ${model.displayName}, Premium atual: ${_isPremiumUser.value}, Novo é premium: ${model.isPremium}"
+        )
         // Clear previous error messages
         _errorMessage.value = null
 
@@ -848,7 +906,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (model.isPremium && !_isPremiumUser.value) {
             _errorMessage.value = context.getString(R.string.error_premium_required)
 
-            val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
+            val defaultModel =
+                availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
 
             // Force model update with more aggressive approach
             viewModelScope.launch {
@@ -921,13 +980,19 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     Log.i("ChatViewModel", "Model preference saved: ${model.displayName}")
                 } catch (e: Exception) {
                     Log.e("ChatViewModel", "Error saving model preference", e)
-                    _errorMessage.value = context.getString(R.string.error_save_model, e.localizedMessage)
+                    _errorMessage.value =
+                        context.getString(R.string.error_save_model, e.localizedMessage)
                 }
             }
         }
     }
 
-    fun generateImage(prompt: String, quality: String = "standard", size: String = "1024x1024", transparent: Boolean = false) {
+    fun generateImage(
+        prompt: String,
+        quality: String = "standard",
+        size: String = "1024x1024",
+        transparent: Boolean = false
+    ) {
         // Check if user is authenticated
         val currentUserId = _userIdFlow.value
         if (currentUserId.isBlank() || currentUserId == "local_user") {
@@ -949,13 +1014,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 isPremium = true
             )
 
-        Log.d("ChatViewModel", "Using image model: ${imageModel.displayName} (${imageModel.apiEndpoint})")
+        Log.d(
+            "ChatViewModel",
+            "Using image model: ${imageModel.displayName} (${imageModel.apiEndpoint})"
+        )
 
         // Atualizar estados para mostrar o carregamento na UI
         _isImageGenerating.value = true
         _currentImagePrompt.value = prompt
         _isGeneratingImage.value = true
-        _imageGenerationState.value = ImageGenerationResult.Loading("Iniciando geração de imagem...")
+        _imageGenerationState.value =
+            ImageGenerationResult.Loading("Iniciando geração de imagem...")
 
         viewModelScope.launch {
             try {
@@ -986,7 +1055,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
                             if (effectiveConversationId == null || effectiveConversationId == NEW_CONVERSATION_ID) {
                                 val newConvTimestampId = System.currentTimeMillis()
-                                _currentConversationId.value = newConvTimestampId // Critical: Update the ViewModel's current conversation ID
+                                _currentConversationId.value =
+                                    newConvTimestampId // Critical: Update the ViewModel's current conversation ID
                                 effectiveConversationId = newConvTimestampId
 
                                 // Save metadata for this new conversation
@@ -1000,16 +1070,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                                         )
                                     )
                                 }
-                                Log.d("ChatViewModel", "Image generation initiated a new conversation. ID: $newConvTimestampId")
+                                Log.d(
+                                    "ChatViewModel",
+                                    "Image generation initiated a new conversation. ID: $newConvTimestampId"
+                                )
                             }
 
                             // Save the generated image URI
                             _generatedImageUri.value = result.imageUri
-                            Log.d("ChatViewModel", "Image generated successfully at: ${result.imagePath}")
+                            Log.d(
+                                "ChatViewModel",
+                                "Image generated successfully at: ${result.imagePath}"
+                            )
 
                             // Verify the file exists
                             val file = File(result.imagePath)
-                            Log.d("ChatViewModel", "Image file exists: ${file.exists()}, size: ${file.length()}")
+                            Log.d(
+                                "ChatViewModel",
+                                "Image file exists: ${file.exists()}, size: ${file.length()}"
+                            )
 
                             // Send the image as a bot message
                             val imageMessage = """
@@ -1019,7 +1098,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 "${prompt}"
                 """.trimIndent()
 
-                            Log.d("ChatViewModel", "Creating bot message with image path: ${result.imagePath}")
+                            Log.d(
+                                "ChatViewModel",
+                                "Creating bot message with image path: ${result.imagePath}"
+                            )
 
                             val botMessageEntity = ChatMessageEntity(
                                 id = 0,
@@ -1034,7 +1116,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             val messageId = withContext(Dispatchers.IO) {
                                 chatDao.insertMessage(botMessageEntity)
                             }
-                            Log.d("ChatViewModel", "Bot message with image inserted with ID: $messageId")
+                            Log.d(
+                                "ChatViewModel",
+                                "Bot message with image inserted with ID: $messageId"
+                            )
 
                             // Emitir evento de mensagem adicionada para atualizar a UI
                             _messageAddedEvent.emit(Unit)
@@ -1057,8 +1142,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Error in image generation", e)
-                _imageGenerationState.value = ImageGenerationResult.Error("Erro: ${e.localizedMessage ?: "Erro desconhecido"}")
-                _errorMessage.value = "Erro na geração de imagem: ${e.localizedMessage ?: "Erro desconhecido"}"
+                _imageGenerationState.value =
+                    ImageGenerationResult.Error("Erro: ${e.localizedMessage ?: "Erro desconhecido"}")
+                _errorMessage.value =
+                    "Erro na geração de imagem: ${e.localizedMessage ?: "Erro desconhecido"}"
             } finally {
                 // Limpar os estados de carregamento quando terminar
                 _isImageGenerating.value = false
@@ -1067,6 +1154,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
     // Function to check if user is premium via BillingViewModel singleton
     fun checkIfUserIsPremium() {
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -1094,14 +1182,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         _userPlanType.value = response.subscriptionType
                         validateCurrentModel(response.hasAccess)
 
-                        Log.i("ChatViewModel", "✅ Backend: Premium=${response.hasAccess}, Plano=${response.subscriptionType}")
+                        Log.i(
+                            "ChatViewModel",
+                            "✅ Backend: Premium=${response.hasAccess}, Plano=${response.subscriptionType}"
+                        )
                     }
                 } else {
                     // Fallback para método local se não conseguir token
                     checkIfUserIsPremiumLocal()
                 }
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "❌ Erro na verificação backend, usando fallback local: ${e.message}")
+                Log.e(
+                    "ChatViewModel",
+                    "❌ Erro na verificação backend, usando fallback local: ${e.message}"
+                )
                 // Fallback para método local
                 checkIfUserIsPremiumLocal()
             }
@@ -1128,9 +1222,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 val imageName = file.name
                 val contentValues = ContentValues().apply {
                     put(MediaStore.Images.Media.DISPLAY_NAME, imageName)
-                    put(MediaStore.Images.Media.MIME_TYPE, "image/png") // Ou o tipo correto se souber
+                    put(
+                        MediaStore.Images.Media.MIME_TYPE,
+                        "image/png"
+                    ) // Ou o tipo correto se souber
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/StormChat") // Salva na pasta Pictures/StormChat
+                        put(
+                            MediaStore.Images.Media.RELATIVE_PATH,
+                            "Pictures/StormChat"
+                        ) // Salva na pasta Pictures/StormChat
                         put(MediaStore.Images.Media.IS_PENDING, 1)
                     }
                 }
@@ -1159,7 +1259,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         resolver.update(imageUri, contentValues, null, null)
                     }
                     Log.d("ChatViewModel", "Image saved to gallery: $imageUri")
-                    _imageSavedEvent.emit(context.getString(R.string.image_saved_to_gallery, "Pictures/StormChat"))
+                    _imageSavedEvent.emit(
+                        context.getString(
+                            R.string.image_saved_to_gallery,
+                            "Pictures/StormChat"
+                        )
+                    )
                 } catch (e: Exception) {
                     Log.e("ChatViewModel", "Error copying file to MediaStore: ${e.message}", e)
                     // Se falhar, tenta remover a entrada pendente
@@ -1303,7 +1408,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 // Observe premium status changes from BillingViewModel
                 launch {
                     billingViewModel.isPremiumUser.collect { isPremiumFromBilling ->
-                        Log.d("ChatViewModel", "BillingViewModel reported premium status: $isPremiumFromBilling")
+                        Log.d(
+                            "ChatViewModel",
+                            "BillingViewModel reported premium status: $isPremiumFromBilling"
+                        )
 
                         // ✅ LOGS BACKEND - STATUS CHANGE
                         Log.d("backend", "=== STATUS CHANGE FROM BILLING ===")
@@ -1369,8 +1477,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             Result.success(true)
                         } else {
                             withContext(Dispatchers.Main) {
-                                val resetDate = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                                    .format(Date(usageInfo.resetAt))
+                                val resetDate =
+                                    SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                                        .format(Date(usageInfo.resetAt))
 
                                 _errorMessage.value = if (_isPremiumUser.value) {
                                     "Limite diário atingido para ${_selectedModel.value.displayName}. " +
@@ -1400,16 +1509,28 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // New method to validate current model based on premium status
     private fun validateCurrentModel(isPremium: Boolean) {
+        Log.d(
+            "ChatViewModel",
+            "[LOG] validateCurrentModel() chamado. isPremium: " + isPremium + ", Modelo atual: " + _selectedModel.value.displayName + ", Modelo é premium: " + _selectedModel.value.isPremium
+        );
         if (!isPremium && _selectedModel.value.isPremium) {
             // Non-premium user using premium model
             // Return to default model
-            val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
+            val defaultModel =
+                availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
 
             viewModelScope.launch {
                 try {
                     // Update selected model
+                    Log.d(
+                        "ChatViewModel",
+                        "[LOG] _selectedModel.value alterado para: " + (defaultModel).displayName
+                    );
                     _selectedModel.value = defaultModel
-                    Log.i("ChatViewModel", "Non-premium user. Reverting to default model: ${defaultModel.displayName}")
+                    Log.i(
+                        "ChatViewModel",
+                        "Non-premium user. Reverting to default model: ${defaultModel.displayName}"
+                    )
 
                     // Update preference in database
                     modelPreferenceDao.insertOrUpdatePreference(
@@ -1517,7 +1638,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             checkIfUserIsPremium()
 
             // E depois a cada 30 segundos (verificação leve)
-            while(true) {
+            while (true) {
                 delay(30000)  // 30 segundos
                 // Somente fazer verificação se o usuário estiver logado
                 if (FirebaseAuth.getInstance().currentUser != null) {
@@ -1539,37 +1660,31 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             // Carrega preferência do usuário do banco
             modelPreferenceDao.getModelPreference(_userIdFlow.value)
                 .collect { preference ->
+                    Log.d(
+                        "ChatViewModel",
+                        "[LOG] Carregando preferência do modelo do banco. Preference: " + (preference?.selectedModelId
+                            ?: "nenhuma")
+                    );
                     if (preference != null) {
-                        val savedModel = availableModels.find { it.id == preference.selectedModelId }
-                        if (savedModel != null) {
-                            if (!savedModel.isPremium || _isPremiumUser.value) {
-                                // Modelo é gratuito ou usuário é premium: mantém!
-                                _selectedModel.value = savedModel
-                                Log.i("ChatViewModel", "Loaded user model preference: ${savedModel.displayName}")
-                            } else {
-                                // Usuário básico tentando usar modelo premium: força default
-                                val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
-                                _selectedModel.value = defaultModel
-                                Log.i("ChatViewModel", "User is not premium. Reverting to default model: ${defaultModel.displayName}")
-                                // Atualiza banco
-                                modelPreferenceDao.insertOrUpdatePreference(
-                                    ModelPreferenceEntity(
-                                        userId = _userIdFlow.value,
-                                        selectedModelId = defaultModel.id
-                                    )
-                                )
-                            }
-                        } else {
-                            // Modelo salvo não existe: força default
-                            val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
-                            _selectedModel.value = defaultModel
-                            Log.i("ChatViewModel", "Model not found. Reverting to default: ${defaultModel.displayName}")
+                        val savedModel =
+                            availableModels.find { it.id == preference.selectedModelId }
+                        if (savedModel != null && _selectedModel.value == defaultModel) {
+                            _selectedModel.value = savedModel
+                            Log.i(
+                                "ChatViewModel",
+                                "Loaded user model preference: ${savedModel.displayName}"
+                            )
+                        } else if (savedModel == null) {
+                            Log.i(
+                                "ChatViewModel",
+                                "Model not found in availableModels. Mantendo modelo atual: ${_selectedModel.value.displayName}"
+                            )
                         }
                     } else {
-                        // Não tem preferência salva: força default
-                        val defaultModel = availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
-                        _selectedModel.value = defaultModel
-                        Log.i("ChatViewModel", "No preference. Using default model: ${defaultModel.displayName}")
+                        Log.i(
+                            "ChatViewModel",
+                            "No preference found. Mantendo modelo atual: ${_selectedModel.value.displayName}"
+                        )
                     }
                 }
         }
@@ -1628,7 +1743,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         Log.d("ChatViewModel", "No conversations found for user: $uid")
                     }
                     .catch { e ->
-                        Log.e("ChatViewModel", "Error loading raw conversations flow for user: $uid", e)
+                        Log.e(
+                            "ChatViewModel",
+                            "Error loading raw conversations flow for user: $uid",
+                            e
+                        )
                         _errorMessage.value = "Erro ao carregar lista de conversas (raw)."
                         emit(emptyList())
                     }
@@ -1645,12 +1764,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
 
     val conversationListForDrawer: StateFlow<List<ConversationDisplayItem>> =
-        combine(rawConversationsFlow, metadataFlow, _showConversations, _userIdFlow) { conversations, metadataList, showConversations, currentUserId ->
+        combine(
+            rawConversationsFlow,
+            metadataFlow,
+            _showConversations,
+            _userIdFlow
+        ) { conversations, metadataList, showConversations, currentUserId ->
             if (!showConversations || auth.currentUser == null) {
                 return@combine emptyList<ConversationDisplayItem>()
             }
 
-            Log.d("ChatViewModel", "Combining ${conversations.size} convs and ${metadataList.size} metadata entries for user $currentUserId.")
+            Log.d(
+                "ChatViewModel",
+                "Combining ${conversations.size} convs and ${metadataList.size} metadata entries for user $currentUserId."
+            )
 
             val userMetadata = metadataList.filter { it.userId == currentUserId }
             val metadataMap = userMetadata.associateBy({ it.conversationId }, { it.customTitle })
@@ -1675,18 +1802,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 emit(emptyList())
             }
-            .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyList()
+            )
 
     val messages: StateFlow<List<com.ivip.brainstormia.ChatMessage>> =
         _currentConversationId.flatMapLatest { convId ->
             Log.d("ChatViewModel", "[State] CurrentConversationId changed: $convId")
             when (convId) {
                 null, NEW_CONVERSATION_ID -> {
-                    flowOf(listOf(com.ivip.brainstormia.ChatMessage(welcomeMessageText, Sender.BOT)))
+                    flowOf(
+                        listOf(
+                            com.ivip.brainstormia.ChatMessage(
+                                welcomeMessageText,
+                                Sender.BOT
+                            )
+                        )
+                    )
                 }
+
                 else -> chatDao.getMessagesForConversation(convId, _userIdFlow.value)
                     .map { entities ->
-                        Log.d("ChatViewModel", "[State] Mapping ${entities.size} entities for conv $convId")
+                        Log.d(
+                            "ChatViewModel",
+                            "[State] Mapping ${entities.size} entities for conv $convId"
+                        )
                         mapEntitiesToUiMessages(entities)
                     }
                     .catch { e ->
@@ -1698,9 +1840,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     }
             }
         }
-            .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000L), initialValue = emptyList())
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
 
-    private val welcomeMessageText = getApplication<Application>().getString(R.string.welcome_message)
+    private val welcomeMessageText =
+        getApplication<Application>().getString(R.string.welcome_message)
 
     // Evento disparado sempre que uma nova mensagem é salva no BD
     private val _messageAddedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -1753,7 +1900,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     Never use sequences of characters like "──────────" to create visual separators, as this breaks markdown formatting.
     """
 
-    private fun autoGenerateConversationTitle(conversationId: Long, userMessage: String, botResponse: String) {
+    private fun autoGenerateConversationTitle(
+        conversationId: Long,
+        userMessage: String,
+        botResponse: String
+    ) {
         // Don't generate title for new or invalid conversation
         if (conversationId == NEW_CONVERSATION_ID) {
             return
@@ -1765,17 +1916,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (!existingTitle.isNullOrBlank()) {
                     // Already has a custom title, no need to generate
-                    Log.d("ChatViewModel", "Conversation $conversationId already has a custom title: '$existingTitle'")
+                    Log.d(
+                        "ChatViewModel",
+                        "Conversation $conversationId already has a custom title: '$existingTitle'"
+                    )
                     return@launch
                 }
 
-                Log.d("ChatViewModel", "Generating automatic title after first interaction for conversation $conversationId")
+                Log.d(
+                    "ChatViewModel",
+                    "Generating automatic title after first interaction for conversation $conversationId"
+                )
 
                 // Build specific prompt to create title based only on the first interaction
-                val promptText = "Based on this first interaction, create a short descriptive title (3-4 words) for this conversation in English.\n\n" +
-                        "User: $userMessage\n\n" +
-                        "Assistant: ${botResponse.take(200)}\n\n" +
-                        "Title (only the title, no quotes or other text):"
+                val promptText =
+                    "Based on this first interaction, create a short descriptive title (3-4 words) for this conversation in English.\n\n" +
+                            "User: $userMessage\n\n" +
+                            "Assistant: ${botResponse.take(200)}\n\n" +
+                            "Title (only the title, no quotes or other text):"
 
                 // Use a lightweight model by default to save tokens
                 val titleModelId = when (_selectedModel.value.provider) {
@@ -1796,6 +1954,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             historyMessages = emptyList() // We don't need history since we have the context in the prompt
                         ).collect { chunk -> titleResponse += chunk }
                     }
+
                     AIProvider.GOOGLE -> {
                         googleAIClient.generateChatCompletion(
                             modelId = titleModelId,
@@ -1804,6 +1963,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             historyMessages = emptyList()
                         ).collect { chunk -> titleResponse += chunk }
                     }
+
                     AIProvider.ANTHROPIC -> {
                         anthropicClient.generateChatCompletion(
                             modelId = titleModelId,
@@ -1823,7 +1983,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     .take(50) // Maximum character limit
 
                 if (cleanedTitle.isNotBlank()) {
-                    Log.i("ChatViewModel", "Automatic title generated after first interaction: '$cleanedTitle' for conversation $conversationId")
+                    Log.i(
+                        "ChatViewModel",
+                        "Automatic title generated after first interaction: '$cleanedTitle' for conversation $conversationId"
+                    )
 
                     // Save the custom title to the database
                     // We use insertOrUpdateMetadata which is already implemented and working
@@ -1847,6 +2010,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         forceNextCheck = true
         checkIfUserIsPremium()
     }
+
     // Public method to force premium status check with options
     fun forceCheckPremiumStatus(highPriority: Boolean = false) {
         Log.d("ChatViewModel", "Forcing premium status check with high priority: $highPriority")
@@ -1871,7 +2035,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleLogin() {
         Log.d("ChatViewModel", "handleLogin() called - user=${_userIdFlow.value}")
-        //_selectedModel.value = defaultModel
+        //Log.d("ChatViewModel", "[LOG] _selectedModel.value alterado para: " + (defaultModel).displayName);
+        _selectedModel.value = defaultModel
         _showConversations.value = true
 
         // Notifica BillingViewModel uma única vez
@@ -1974,6 +2139,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleLogout() {
         startNewConversation()
+        Log.d(
+            "ChatViewModel",
+            "[LOG] _selectedModel.value alterado para: " + (defaultModel).displayName
+        );
         _selectedModel.value = defaultModel
         _clearConversationListEvent.value = true
         _showConversations.value = false
@@ -2014,17 +2183,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             lowercaseTitle.contains("ansiedade") ||
                     lowercaseTitle.contains("medo") ||
                     lowercaseTitle.contains("preocup") -> ConversationType.EMOTIONAL
+
             lowercaseTitle.contains("depress") ||
                     lowercaseTitle.contains("triste") ||
                     lowercaseTitle.contains("terapia") ||
                     lowercaseTitle.contains("tratamento") -> ConversationType.THERAPEUTIC
+
             lowercaseTitle.contains("eu") ||
                     lowercaseTitle.contains("minha") ||
                     lowercaseTitle.contains("meu") ||
                     lowercaseTitle.contains("como me") -> ConversationType.PERSONAL
+
             lowercaseTitle.contains("importante") ||
                     lowercaseTitle.contains("urgente") ||
                     lowercaseTitle.contains("lembrar") -> ConversationType.HIGHLIGHTED
+
             else -> {
                 when ((id % 5)) {
                     0L -> ConversationType.GENERAL
@@ -2041,7 +2214,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             delay(150)
             _currentConversationId.value = NEW_CONVERSATION_ID
-            Log.i("ChatViewModel", "[Init] App started with new conversation (without restoring previous state).")
+            Log.i(
+                "ChatViewModel",
+                "[Init] App started with new conversation (without restoring previous state)."
+            )
         }
     }
 
@@ -2052,7 +2228,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             _errorMessage.value = null
             _loadingState.value = LoadingState.IDLE
         } else {
-            Log.d("ChatViewModel", "Action: Already in new conversation flow, ignoring startNewConversation.")
+            Log.d(
+                "ChatViewModel",
+                "Action: Already in new conversation flow, ignoring startNewConversation."
+            )
         }
     }
 
@@ -2063,9 +2242,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             _errorMessage.value = null
             _loadingState.value = LoadingState.IDLE
         } else if (conversationId == _currentConversationId.value) {
-            Log.d("ChatViewModel", "Action: Conversation $conversationId already selected, ignoring selectConversation.")
+            Log.d(
+                "ChatViewModel",
+                "Action: Conversation $conversationId already selected, ignoring selectConversation."
+            )
         } else {
-            Log.w("ChatViewModel", "Action: Attempted to select invalid NEW_CONVERSATION_ID ($conversationId), ignoring.")
+            Log.w(
+                "ChatViewModel",
+                "Action: Attempted to select invalid NEW_CONVERSATION_ID ($conversationId), ignoring."
+            )
         }
     }
 
@@ -2102,19 +2287,31 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
                     if (conversationIdForUserCommand != null && conversationIdForUserCommand != NEW_CONVERSATION_ID) {
                         saveMessageToDb( // ESTA É A SUA ÚNICA FUNÇÃO saveMessageToDb
-                            uiMessage = com.ivip.brainstormia.ChatMessage(userMessageText, Sender.USER),
+                            uiMessage = com.ivip.brainstormia.ChatMessage(
+                                userMessageText,
+                                Sender.USER
+                            ),
                             conversationId = conversationIdForUserCommand,
                             timestamp = System.currentTimeMillis() - 500 // Um pouco antes da imagem do bot
                         )
-                        Log.d("ChatViewModel", "User's image command '$userMessageText' saved to conversation $conversationIdForUserCommand")
+                        Log.d(
+                            "ChatViewModel",
+                            "User's image command '$userMessageText' saved to conversation $conversationIdForUserCommand"
+                        )
                     } else {
-                        Log.w("ChatViewModel", "Could not save user's image command: Invalid conversationId ($conversationIdForUserCommand) after image generation call.")
+                        Log.w(
+                            "ChatViewModel",
+                            "Could not save user's image command: Invalid conversationId ($conversationIdForUserCommand) after image generation call."
+                        )
                     }
                 }
                 // A UI (ChatScreen) é responsável por limpar o userMessage após o envio.
             } else {
                 // USA A STRING RESOURCE CORRIGIDA
-                _errorMessage.value = context.getString(R.string.error_prompt_required_after_command, imageCommandPrefix.trim())
+                _errorMessage.value = context.getString(
+                    R.string.error_prompt_required_after_command,
+                    imageCommandPrefix.trim()
+                )
             }
             return // Importante: Não processar como mensagem de texto normal
         }
@@ -2159,11 +2356,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val timestamp = System.currentTimeMillis()
         var targetConversationId = _currentConversationId.value
         val userId = _userIdFlow.value
-        val isStartingNewConversation = (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID)
+        val isStartingNewConversation =
+            (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID)
 
         if (isStartingNewConversation) {
             targetConversationId = timestamp
-            Log.i("ChatViewModel", "Action: Creating new conversation for text message with ID: $targetConversationId for user $userId")
+            Log.i(
+                "ChatViewModel",
+                "Action: Creating new conversation for text message with ID: $targetConversationId for user $userId"
+            )
             _currentConversationId.value = targetConversationId
             viewModelScope.launch(Dispatchers.IO) {
                 try {
@@ -2174,15 +2375,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             userId = userId
                         )
                     )
-                    Log.d("ChatViewModel", "Initial metadata saved for new conversation $targetConversationId")
+                    Log.d(
+                        "ChatViewModel",
+                        "Initial metadata saved for new conversation $targetConversationId"
+                    )
                 } catch (e: Exception) {
-                    Log.e("ChatViewModel", "Error saving initial metadata for new conv $targetConversationId", e)
+                    Log.e(
+                        "ChatViewModel",
+                        "Error saving initial metadata for new conv $targetConversationId",
+                        e
+                    )
                 }
             }
         }
 
         if (targetConversationId == null || targetConversationId == NEW_CONVERSATION_ID) {
-            Log.e("ChatViewModel", "processSendMessage Error: Invalid targetConversationId ($targetConversationId) after new conversation logic for text message.")
+            Log.e(
+                "ChatViewModel",
+                "processSendMessage Error: Invalid targetConversationId ($targetConversationId) after new conversation logic for text message."
+            )
             _errorMessage.value = context.getString(R.string.error_internal_conversation)
             _loadingState.value = LoadingState.IDLE
             return
@@ -2193,16 +2404,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val currentMessagesFromDb = chatDao.getMessagesForConversation(targetConversationId!!, userId).first()
+                val currentMessagesFromDb =
+                    chatDao.getMessagesForConversation(targetConversationId!!, userId).first()
                 val historyMessages = mapEntitiesToUiMessages(currentMessagesFromDb)
                     .takeLast(MAX_HISTORY_MESSAGES)
 
-                Log.d("ChatViewModel", "API Call (Text): Sending ${historyMessages.size} messages to API for conv $targetConversationId using model ${_selectedModel.value.displayName}")
+                Log.d(
+                    "ChatViewModel",
+                    "API Call (Text): Sending ${historyMessages.size} messages to API for conv $targetConversationId using model ${_selectedModel.value.displayName}"
+                )
                 callOpenAIApi(userMessageText, historyMessages, targetConversationId!!)
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error preparing history or calling text API for conv $targetConversationId", e)
+                Log.e(
+                    "ChatViewModel",
+                    "Error preparing history or calling text API for conv $targetConversationId",
+                    e
+                )
                 withContext(Dispatchers.Main) {
-                    _errorMessage.value = context.getString(R.string.error_process_history, e.message)
+                    _errorMessage.value =
+                        context.getString(R.string.error_process_history, e.message)
                     _loadingState.value = LoadingState.ERROR
                 }
             }
@@ -2211,7 +2431,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // ... (suas outras funções: deleteConversation, renameConversation, callOpenAIApi, mappers, etc.)
     // A função saveMessageToDb que você já tem:
-    private fun saveMessageToDb(uiMessage: com.ivip.brainstormia.ChatMessage, conversationId: Long, timestamp: Long) {
+    private fun saveMessageToDb(
+        uiMessage: com.ivip.brainstormia.ChatMessage,
+        conversationId: Long,
+        timestamp: Long
+    ) {
         val entity = mapUiMessageToEntity(uiMessage, conversationId, timestamp)
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -2236,22 +2460,36 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 chatDao.clearConversation(conversationId, _userIdFlow.value)
                 metadataDao.deleteMetadata(conversationId)
-                Log.i("ChatViewModel", "Conversation $conversationId and metadata deleted successfully from DB.")
+                Log.i(
+                    "ChatViewModel",
+                    "Conversation $conversationId and metadata deleted successfully from DB."
+                )
                 if (_currentConversationId.value == conversationId) {
-                    val remainingConversations = chatDao.getConversationsForUser(_userIdFlow.value).first()
+                    val remainingConversations =
+                        chatDao.getConversationsForUser(_userIdFlow.value).first()
                     withContext(Dispatchers.Main) {
                         val nextConversationId = remainingConversations.firstOrNull()?.id
                         if (nextConversationId != null) {
-                            Log.i("ChatViewModel", "Deleted current conversation, selecting next available from DB: $nextConversationId")
+                            Log.i(
+                                "ChatViewModel",
+                                "Deleted current conversation, selecting next available from DB: $nextConversationId"
+                            )
                             _currentConversationId.value = nextConversationId
                         } else {
-                            Log.i("ChatViewModel", "Deleted current conversation, no others left in DB. Starting new conversation flow.")
+                            Log.i(
+                                "ChatViewModel",
+                                "Deleted current conversation, no others left in DB. Starting new conversation flow."
+                            )
                             _currentConversationId.value = NEW_CONVERSATION_ID
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error deleting conversation $conversationId or its metadata", e)
+                Log.e(
+                    "ChatViewModel",
+                    "Error deleting conversation $conversationId or its metadata",
+                    e
+                )
                 withContext(Dispatchers.Main) {
                     _errorMessage.value = "Erro ao excluir conversa: ${e.localizedMessage}"
                 }
@@ -2319,7 +2557,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
             // Logar detalhes de diagnóstico para debugging
             if (hasImageContent) {
-                Log.d("ChatViewModel", "Mensagem contém imagem. Modelo suporta visão: $isVisionCapableModel")
+                Log.d(
+                    "ChatViewModel",
+                    "Mensagem contém imagem. Modelo suporta visão: $isVisionCapableModel"
+                )
             }
 
             withContext(Dispatchers.IO) {
@@ -2340,6 +2581,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                                 true
                             }
                         }
+
                         AIProvider.GOOGLE -> {
                             Log.d("ChatViewModel", "Using Google client")
                             withTimeoutOrNull(200000) {
@@ -2354,6 +2596,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                                 true
                             }
                         }
+
                         AIProvider.ANTHROPIC -> {
                             Log.d("ChatViewModel", "Using Anthropic client")
                             withTimeoutOrNull(300000) { // Give Claude more time
@@ -2379,7 +2622,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             responseText.clear()
                             Log.w("ChatViewModel", "Using backup model (Gemini )")
 
-                            val backupModel = availableModels.first { it.id == "gemini-2.5-flash-preview-05-20" }
+                            val backupModel =
+                                availableModels.first { it.id == "gemini-2.5-flash-preview-05-20" }
                             modelUsed = backupModel
 
                             val backupResult = withTimeoutOrNull(60000) {
@@ -2410,7 +2654,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             // Response processing
             val finalResponse = responseText.toString()
             if (finalResponse.isNotBlank()) {
-                Log.d("ChatViewModel", "API response received for conv $conversationId (${finalResponse.length} characters)")
+                Log.d(
+                    "ChatViewModel",
+                    "API response received for conv $conversationId (${finalResponse.length} characters)"
+                )
 
                 val botMessageEntity = ChatMessageEntity(
                     id = 0,
@@ -2426,9 +2673,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         chatDao.insertMessage(botMessageEntity)
                         Log.d("ChatViewModel", "Bot message saved to database")
                         if (historyMessages.size <= 1 ||
-                            (conversationId != NEW_CONVERSATION_ID && historyMessages.count { it.sender == Sender.USER } == 0)) {
+                            (conversationId != NEW_CONVERSATION_ID && historyMessages.count { it.sender == Sender.USER } == 0)
+                        ) {
                             // It's the first interaction, generate automatic title
-                            autoGenerateConversationTitle(conversationId, userMessageText, finalResponse)
+                            autoGenerateConversationTitle(
+                                conversationId,
+                                userMessageText,
+                                finalResponse
+                            )
                         }
                     } catch (e: Exception) {
                         Log.e("ChatViewModel", "Error saving bot message to database", e)
@@ -2446,7 +2698,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 if (e.message?.contains("Timeout") == true) {
                     _errorMessage.value = context.getString(R.string.error_timeout)
                 } else {
-                    _errorMessage.value = context.getString(R.string.error_ai_communication, e.localizedMessage)
+                    _errorMessage.value =
+                        context.getString(R.string.error_ai_communication, e.localizedMessage)
                 }
             }
         } finally {
@@ -2462,13 +2715,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 val sender = enumValueOf<Sender>(entity.sender.uppercase())
                 com.ivip.brainstormia.ChatMessage(entity.text, sender)
             } catch (e: IllegalArgumentException) {
-                Log.e("ChatViewModelMapper", "Invalid sender string in DB: ${entity.sender}. Skipping message ID ${entity.id}.")
+                Log.e(
+                    "ChatViewModelMapper",
+                    "Invalid sender string in DB: ${entity.sender}. Skipping message ID ${entity.id}."
+                )
                 null
             }
         }
     }
 
-    private fun mapUiMessageToEntity(message: com.ivip.brainstormia.ChatMessage, conversationId: Long, timestamp: Long): ChatMessageEntity {
+    private fun mapUiMessageToEntity(
+        message: com.ivip.brainstormia.ChatMessage,
+        conversationId: Long,
+        timestamp: Long
+    ): ChatMessageEntity {
         return ChatMessageEntity(
             conversationId = conversationId,
             text = message.text,
@@ -2485,7 +2745,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     generateFallbackTitle(conversationId)
                 }
             }.getOrElse { ex ->
-                Log.e("ChatViewModel", "Error generating fallback title synchronously for conv $conversationId", ex)
+                Log.e(
+                    "ChatViewModel",
+                    "Error generating fallback title synchronously for conv $conversationId",
+                    ex
+                )
                 "Conversa $conversationId"
             }
         } catch (e: Exception) {
@@ -2493,26 +2757,42 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private suspend fun generateFallbackTitle(conversationId: Long): String = withContext(Dispatchers.IO) {
-        try {
-            val firstUserMessageText = chatDao.getFirstUserMessageText(conversationId, _userIdFlow.value)
-            if (!firstUserMessageText.isNullOrBlank()) {
-                Log.d("ChatViewModel", "Generating fallback title for $conversationId using first message.")
-                return@withContext firstUserMessageText.take(30) + if (firstUserMessageText.length > 30) "..." else ""
-            } else {
-                try {
-                    Log.d("ChatViewModel", "Generating fallback title for $conversationId using date.")
-                    return@withContext "Conversa ${titleDateFormatter.format(Date(conversationId))}"
-                } catch (formatException: Exception) {
-                    Log.w("ChatViewModel", "Could not format conversationId $conversationId as Date for fallback title.", formatException)
-                    return@withContext "Conversa $conversationId"
+    private suspend fun generateFallbackTitle(conversationId: Long): String =
+        withContext(Dispatchers.IO) {
+            try {
+                val firstUserMessageText =
+                    chatDao.getFirstUserMessageText(conversationId, _userIdFlow.value)
+                if (!firstUserMessageText.isNullOrBlank()) {
+                    Log.d(
+                        "ChatViewModel",
+                        "Generating fallback title for $conversationId using first message."
+                    )
+                    return@withContext firstUserMessageText.take(30) + if (firstUserMessageText.length > 30) "..." else ""
+                } else {
+                    try {
+                        Log.d(
+                            "ChatViewModel",
+                            "Generating fallback title for $conversationId using date."
+                        )
+                        return@withContext "Conversa ${titleDateFormatter.format(Date(conversationId))}"
+                    } catch (formatException: Exception) {
+                        Log.w(
+                            "ChatViewModel",
+                            "Could not format conversationId $conversationId as Date for fallback title.",
+                            formatException
+                        )
+                        return@withContext "Conversa $conversationId"
+                    }
                 }
+            } catch (dbException: Exception) {
+                Log.e(
+                    "ChatViewModel",
+                    "Error generating fallback title for conv $conversationId",
+                    dbException
+                )
+                return@withContext "Conversa $conversationId"
             }
-        } catch (dbException: Exception) {
-            Log.e("ChatViewModel", "Error generating fallback title for conv $conversationId", dbException)
-            return@withContext "Conversa $conversationId"
         }
-    }
 
     suspend fun getDisplayTitle(conversationId: Long): String {
         return withContext(Dispatchers.IO) {
@@ -2522,19 +2802,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 try {
                     val customTitle = metadataDao.getCustomTitle(conversationId)
                     if (!customTitle.isNullOrBlank()) {
-                        Log.d("ChatViewModel", "Using custom title for $conversationId: '$customTitle'")
+                        Log.d(
+                            "ChatViewModel",
+                            "Using custom title for $conversationId: '$customTitle'"
+                        )
                         customTitle
                     } else {
                         generateFallbackTitle(conversationId)
                     }
                 } catch (dbException: Exception) {
-                    Log.e("ChatViewModel", "Error fetching title data for conv $conversationId", dbException)
+                    Log.e(
+                        "ChatViewModel",
+                        "Error fetching title data for conv $conversationId",
+                        dbException
+                    )
                     "Conversa $conversationId"
                 }
             }
         }
     }
-
 
 
     companion object {

@@ -31,6 +31,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -757,6 +758,74 @@ class BillingViewModel private constructor(application: Application) :
 
         // Chama checkPremiumStatus uma única vez com forceRefresh
         checkPremiumStatus(forceRefresh = true)
+    }
+
+    /**
+     * Exibe o token JWT no logcat de forma confiável
+     */
+    fun logJwtToken() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Log.e("JWT_TOKEN", "❌ Usuário não autenticado")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                // Obter token (use false para token em cache, true para forçar renovação)
+                val tokenResult = currentUser.getIdToken(false).await()
+                val token = tokenResult?.token
+
+                if (token == null) {
+                    Log.e("JWT_TOKEN", "❌ Token nulo")
+                    return@launch
+                }
+
+                // Informações básicas
+                Log.e("JWT_TOKEN", "✅ TOKEN OBTIDO COM SUCESSO")
+                Log.e("JWT_TOKEN", "User ID: ${currentUser.uid}")
+                Log.e("JWT_TOKEN", "Email: ${currentUser.email}")
+                Log.e("JWT_TOKEN", "Token Length: ${token.length}")
+
+                // Dividir token em partes pequenas (200 caracteres) para evitar truncamento
+                val chunkSize = 200
+                val totalChunks = (token.length + chunkSize - 1) / chunkSize
+
+                Log.e("JWT_TOKEN", "===== INICIO TOKEN (${totalChunks} partes) =====")
+
+                for (i in 0 until token.length step chunkSize) {
+                    val end = minOf(i + chunkSize, token.length)
+                    val chunk = token.substring(i, end)
+                    val partNumber = (i / chunkSize) + 1
+
+                    // Usar TAG curto e Log.e para máxima visibilidade
+                    Log.e("JWT_$partNumber", chunk)
+                }
+
+                Log.e("JWT_TOKEN", "===== FIM TOKEN =====")
+
+                // OPCIONAL: Salvar em arquivo se necessário
+                saveTokenToFile(token)
+
+            } catch (e: Exception) {
+                Log.e("JWT_TOKEN", "❌ Erro ao obter token: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    /**
+     * Salva o token em um arquivo para análise posterior (OPCIONAL)
+     */
+    private fun saveTokenToFile(token: String) {
+        try {
+            val context = getApplication<Application>().applicationContext
+            val file = File(context.filesDir, "jwt_token_${System.currentTimeMillis()}.txt")
+            file.writeText(token)
+            Log.e("JWT_TOKEN", "✅ Token salvo em: ${file.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("JWT_TOKEN", "Erro ao salvar token em arquivo: ${e.message}")
+        }
     }
 
     override fun onCleared() {

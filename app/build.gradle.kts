@@ -38,8 +38,8 @@ android {
         applicationId = "com.ivip.brainstormia"
         minSdk = 26
         targetSdk = 35
-        versionCode = 102
-        versionName = "10.2"
+        versionCode = 103
+        versionName = "10.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // API Keys existentes
@@ -232,6 +232,7 @@ dependencies {
     /* ---------- Data & Room ---------- */
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.volley)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences.core.android)
 

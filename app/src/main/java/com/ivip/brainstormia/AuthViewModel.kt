@@ -112,6 +112,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _currentUser.value = user
         _authState.value = AuthState.Success(user)
 
+        viewModelScope.launch {
+            delay(1000) // Pequeno delay para garantir que tudo está pronto
+
+            // Usar o BillingViewModel para logar o token
+            val app = getApplication<Application>() as BrainstormiaApplication
+            app.billingViewModel.logJwtToken()
+        }
+
         // Notifica BillingViewModel apenas uma vez
         viewModelScope.launch {
             try {

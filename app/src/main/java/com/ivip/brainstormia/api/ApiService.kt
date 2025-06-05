@@ -5,12 +5,10 @@ import android.util.Log
 import com.ivip.brainstormia.auth.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class ApiService(private val tokenManager: TokenManager) {
