@@ -6,17 +6,33 @@ package com.ivip.brainstormia.api
 
 import android.util.Log
 import com.ivip.brainstormia.auth.TokenManager
-import com.ivip.brainstormia.models.*
+import com.ivip.brainstormia.models.AllModelsUsage
+import com.ivip.brainstormia.models.CategoryBenefit
+import com.ivip.brainstormia.models.ModelAccessResponse
+import com.ivip.brainstormia.models.ModelBenefit
+import com.ivip.brainstormia.models.ModelInfo
+import com.ivip.brainstormia.models.ModelLimits
+import com.ivip.brainstormia.models.ModelUsageInfo
+import com.ivip.brainstormia.models.ModelsInfoResponse
+import com.ivip.brainstormia.models.PlanBenefits
+import com.ivip.brainstormia.models.PlanComparison
+import com.ivip.brainstormia.models.PlanInfo
+import com.ivip.brainstormia.models.PlanInfoResponse
+import com.ivip.brainstormia.models.PlanUpgradeInfo
+import com.ivip.brainstormia.models.PremiumActivationRequest
+import com.ivip.brainstormia.models.PremiumActivationResponse
+import com.ivip.brainstormia.models.UpgradeOption
+import com.ivip.brainstormia.models.UpgradeRecommendation
+import com.ivip.brainstormia.models.UsageSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import com.ivip.brainstormia.models.PlanStats
 
 class ApiService(private val tokenManager: TokenManager) {
     private val baseUrl = "https://stormchat-678f9f5a3073.herokuapp.com"
