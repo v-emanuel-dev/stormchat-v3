@@ -38,8 +38,8 @@ android {
         applicationId = "com.ivip.brainstormia"
         minSdk = 26
         targetSdk = 35
-        versionCode = 103
-        versionName = "10.3"
+        versionCode = 104
+        versionName = "10.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // API Keys existentes

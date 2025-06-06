@@ -32,6 +32,7 @@ import com.ivip.brainstormia.data.models.AIProvider
 import com.ivip.brainstormia.file.FileProcessingManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -275,6 +276,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     val userPlanType: StateFlow<String?> = _userPlanType.asStateFlow()
 
     val billingVM = (application as BrainstormiaApplication).billingViewModel
+
+    private val _isUpdatingModel = MutableStateFlow(false)
+
+    private var modelPreferenceJob: Job? = null
 
     // Backend integration - ADICIONAR ESTAS PROPRIEDADES
     fun checkPremiumStatusWithBackend() {
@@ -887,102 +892,102 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun selectModel(model: AIModel) {
-        Log.d(
-            "ChatViewModel",
-            "[LOG] selectModel() chamado. Modelo atual: ${_selectedModel.value.displayName}, Novo modelo: ${model.displayName}, Premium atual: ${_isPremiumUser.value}, Novo é premium: ${model.isPremium}"
-        )
+        Log.d("ModelDebug", "🎯 selectModel() called")
+        Log.d("ModelDebug", "Requested model: ${model.displayName} (${model.id})")
+        Log.d("ModelDebug", "Is premium: ${model.isPremium}")
+        logModelState("SELECT MODEL START")
+
         // Clear previous error messages
         _errorMessage.value = null
 
         // Check if user is logged in
         val currentUserId = _userIdFlow.value
+        Log.d("ModelDebug", "Current user ID: '$currentUserId'")
+
         if (currentUserId.isBlank() || currentUserId == "local_user") {
-            Log.w("ChatViewModel", "Attempted to select model without user login")
+            Log.w("ModelDebug", "❌ Attempted to select model without user login")
             _errorMessage.value = context.getString(R.string.error_login_required)
             return
         }
 
         // Check if user has permission to use premium model
         if (model.isPremium && !_isPremiumUser.value) {
+            Log.w("ModelDebug", "❌ User attempted to select premium model without premium access")
+            Log.w("ModelDebug", "   Model is premium: ${model.isPremium}")
+            Log.w("ModelDebug", "   User is premium: ${_isPremiumUser.value}")
             _errorMessage.value = context.getString(R.string.error_premium_required)
-
-            val defaultModel =
-                availableModels.find { it.id == "gemini-2.5-flash-preview-05-20" } ?: defaultModel
-
-            // Force model update with more aggressive approach
-            viewModelScope.launch {
-                try {
-                    // 1. Reset model to null (non-existent)
-                    withContext(Dispatchers.Main) {
-                        (_selectedModel as MutableStateFlow).value = AIModel(
-                            id = "resetting",
-                            displayName = context.getString(R.string.reset_model),
-                            apiEndpoint = "",
-                            provider = AIProvider.OPENAI,
-                            isPremium = false
-                        )
-                    }
-
-                    // 2. Small delay to ensure UI updates
-                    delay(100)
-
-                    // 3. Set default model
-                    withContext(Dispatchers.Main) {
-                        (_selectedModel as MutableStateFlow).value = defaultModel
-                    }
-
-                    // 4. Save preference to database
-                    modelPreferenceDao.insertOrUpdatePreference(
-                        ModelPreferenceEntity(
-                            userId = currentUserId,
-                            selectedModelId = defaultModel.id
-                        )
-                    )
-
-                    Log.i("ChatViewModel", "Model reverted to default: ${defaultModel.displayName}")
-                } catch (e: Exception) {
-                    Log.e("ChatViewModel", "Error saving default model preference", e)
-                }
-            }
             return
         }
 
-        // Case of premium user or free model
-        if (model.id != _selectedModel.value.id) {
-            viewModelScope.launch {
-                try {
-                    // Reset and set approach to ensure UI updates
-                    withContext(Dispatchers.Main) {
-                        // 1. Reset
-                        (_selectedModel as MutableStateFlow).value = AIModel(
-                            id = "changing",
-                            displayName = context.getString(R.string.changing_model),
-                            apiEndpoint = "",
-                            provider = AIProvider.OPENAI,
-                            isPremium = false
-                        )
+        // 🔧 NOVA VERIFICAÇÃO: Evitar updates desnecessários
+        if (model.id == _selectedModel.value.id) {
+            Log.d("ModelDebug", "⚡ Model ${model.displayName} already selected, no change needed")
+            logModelState("SELECT MODEL NO CHANGE")
+            return
+        }
 
-                        // 2. Small delay
-                        delay(100)
+        Log.d("ModelDebug", "🔄 Model change detected, proceeding with update")
+        Log.d("ModelDebug", "   FROM: ${_selectedModel.value.displayName} (${_selectedModel.value.id})")
+        Log.d("ModelDebug", "   TO: ${model.displayName} (${model.id})")
 
-                        // 3. Set new model
-                        (_selectedModel as MutableStateFlow).value = model
-                    }
+        viewModelScope.launch {
+            try {
+                Log.d("ModelDebug", "💾 Starting model update process")
 
-                    // 4. Save to database
+                // 🔧 NOVA ESTRATÉGIA: Bloquear observação durante update
+                Log.d("ModelDebug", "🔒 Setting update flag to prevent race condition")
+                _isUpdatingModel.value = true
+
+                // 1. Atualizar modelo localmente PRIMEIRO
+                withContext(Dispatchers.Main) {
+                    Log.d("ModelDebug", "🔄 Updating selectedModel on Main thread")
+                    val previousModel = _selectedModel.value
+                    _selectedModel.value = model
+                    Log.d("ModelDebug", "✅ Model updated in StateFlow")
+                    Log.d("ModelDebug", "   Previous: ${previousModel.displayName}")
+                    Log.d("ModelDebug", "   Current: ${_selectedModel.value.displayName}")
+                }
+
+                // 2. Aguardar um pouco para garantir que a UI foi atualizada
+                delay(100)
+
+                // 3. Salvar no banco de dados
+                withContext(Dispatchers.IO) {
+                    Log.d("ModelDebug", "💾 Saving to database on IO thread")
+                    Log.d("ModelDebug", "   User ID: $currentUserId")
+                    Log.d("ModelDebug", "   Model ID: ${model.id}")
+
                     modelPreferenceDao.insertOrUpdatePreference(
                         ModelPreferenceEntity(
                             userId = currentUserId,
                             selectedModelId = model.id
                         )
                     )
-
-                    Log.i("ChatViewModel", "Model preference saved: ${model.displayName}")
-                } catch (e: Exception) {
-                    Log.e("ChatViewModel", "Error saving model preference", e)
-                    _errorMessage.value =
-                        context.getString(R.string.error_save_model, e.localizedMessage)
+                    Log.d("ModelDebug", "✅ Successfully saved to database")
                 }
+
+                // 4. Aguardar mais um pouco para garantir que a transação foi commitada
+                delay(200)
+
+                // 5. Liberar a observação
+                Log.d("ModelDebug", "🔓 Releasing update flag")
+                _isUpdatingModel.value = false
+
+                Log.i("ModelDebug", "🎉 Model preference saved successfully: ${model.displayName}")
+                logModelState("SELECT MODEL SUCCESS")
+
+            } catch (e: Exception) {
+                Log.e("ModelDebug", "❌ Error saving model preference", e)
+                Log.e("ModelDebug", "   Error message: ${e.message}")
+                Log.e("ModelDebug", "   Error class: ${e.javaClass.simpleName}")
+
+                // 🔧 IMPORTANTE: Liberar flag mesmo em caso de erro
+                _isUpdatingModel.value = false
+
+                withContext(Dispatchers.Main) {
+                    _errorMessage.value = context.getString(R.string.error_save_model, e.localizedMessage)
+                }
+                logModelState("SELECT MODEL ERROR")
             }
         }
     }
@@ -1609,9 +1614,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // 2) public flag for external observers
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
+    private fun logModelState(context: String) {
+        Log.d("ModelDebug", "=== $context ===")
+        Log.d("ModelDebug", "Current Model: ${_selectedModel.value.displayName} (${_selectedModel.value.id})")
+        Log.d("ModelDebug", "Is Premium Model: ${_selectedModel.value.isPremium}")
+        Log.d("ModelDebug", "User Premium Status: ${_isPremiumUser.value}")
+        Log.d("ModelDebug", "User ID: ${_userIdFlow.value}")
+        Log.d("ModelDebug", "Auth User: ${FirebaseAuth.getInstance().currentUser?.uid}")
+        Log.d("ModelDebug", "======================")
+    }
+
     init {
         // Initial premium status check
         checkIfUserIsPremium()
+
         viewModelScope.launch {
             // Aguarda 5 segundos antes da primeira verificação periódica
             delay(5000)
@@ -1655,38 +1671,133 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // Premium status check and selected model validation
+        // 🔧 CORREÇÃO PRINCIPAL: Premium status check and selected model validation
         viewModelScope.launch {
-            // Carrega preferência do usuário do banco
-            modelPreferenceDao.getModelPreference(_userIdFlow.value)
-                .collect { preference ->
-                    Log.d(
-                        "ChatViewModel",
-                        "[LOG] Carregando preferência do modelo do banco. Preference: " + (preference?.selectedModelId
-                            ?: "nenhuma")
-                    );
-                    if (preference != null) {
-                        val savedModel =
-                            availableModels.find { it.id == preference.selectedModelId }
-                        if (savedModel != null && _selectedModel.value == defaultModel) {
-                            _selectedModel.value = savedModel
-                            Log.i(
-                                "ChatViewModel",
-                                "Loaded user model preference: ${savedModel.displayName}"
-                            )
-                        } else if (savedModel == null) {
-                            Log.i(
-                                "ChatViewModel",
-                                "Model not found in availableModels. Mantendo modelo atual: ${_selectedModel.value.displayName}"
-                            )
-                        }
-                    } else {
-                        Log.i(
-                            "ChatViewModel",
-                            "No preference found. Mantendo modelo atual: ${_selectedModel.value.displayName}"
-                        )
+            Log.d("ModelDebug", "🔄 Starting userIdFlow collection")
+
+            // Aguardar que o usuário seja carregado primeiro
+            _userIdFlow.collect { userId ->
+                Log.d("ModelDebug", "👤 UserID changed to: '$userId'")
+                logModelState("USER ID CHANGED")
+
+                // Cancelar job anterior de observação de preferências
+                modelPreferenceJob?.cancel()
+
+                if (userId.isNotBlank() && userId != "local_user") {
+                    Log.d("ModelDebug", "✅ Valid user detected, loading model preference for: $userId")
+
+                    // Criar novo job para observar preferências
+                    modelPreferenceJob = launch {
+                        // Carrega preferência do usuário do banco
+                        modelPreferenceDao.getModelPreference(userId)
+                            .collect { preference ->
+                                // 🔧 NOVA VERIFICAÇÃO: Só processar se não estamos atualizando
+                                if (_isUpdatingModel.value) {
+                                    Log.d("ModelDebug", "⏸️ Skipping preference load - model update in progress")
+                                    return@collect
+                                }
+
+                                Log.d("ModelDebug", "💾 Database preference loaded:")
+                                Log.d("ModelDebug", "  - Preference exists: ${preference != null}")
+                                Log.d("ModelDebug", "  - Saved model ID: ${preference?.selectedModelId ?: "none"}")
+                                Log.d("ModelDebug", "  - Current updating flag: ${_isUpdatingModel.value}")
+                                logModelState("BEFORE PREFERENCE PROCESSING")
+
+                                if (preference != null) {
+                                    val savedModel = availableModels.find { it.id == preference.selectedModelId }
+                                    Log.d("ModelDebug", "🔍 Searching for saved model:")
+                                    Log.d("ModelDebug", "  - Saved model found: ${savedModel != null}")
+                                    Log.d("ModelDebug", "  - Saved model name: ${savedModel?.displayName ?: "not found"}")
+
+                                    if (savedModel != null) {
+                                        Log.d("ModelDebug", "🎯 Found saved model: ${savedModel.displayName}")
+
+                                        // Verificar se o usuário tem permissão para usar este modelo
+                                        if (savedModel.isPremium && !_isPremiumUser.value) {
+                                            Log.w("ModelDebug", "⚠️ User lost premium access, reverting to default model")
+                                            Log.w("ModelDebug", "   - Saved model is premium: ${savedModel.isPremium}")
+                                            Log.w("ModelDebug", "   - User premium status: ${_isPremiumUser.value}")
+
+                                            // Se perdeu acesso premium, voltar ao modelo padrão
+                                            _selectedModel.value = defaultModel
+                                            logModelState("REVERTED TO DEFAULT (NO PREMIUM)")
+
+                                            // Atualizar preferência no banco
+                                            try {
+                                                modelPreferenceDao.insertOrUpdatePreference(
+                                                    ModelPreferenceEntity(
+                                                        userId = userId,
+                                                        selectedModelId = defaultModel.id
+                                                    )
+                                                )
+                                                Log.d("ModelDebug", "💾 Updated DB preference to default model")
+                                            } catch (e: Exception) {
+                                                Log.e("ModelDebug", "❌ Error updating model preference to default", e)
+                                            }
+                                        } else {
+                                            // 🔧 NOVA VERIFICAÇÃO: Só atualizar se realmente mudou
+                                            if (_selectedModel.value.id != savedModel.id) {
+                                                Log.d("ModelDebug", "✅ User has permission for saved model")
+                                                Log.d("ModelDebug", "   - Model is premium: ${savedModel.isPremium}")
+                                                Log.d("ModelDebug", "   - User is premium: ${_isPremiumUser.value}")
+
+                                                val previousModel = _selectedModel.value
+                                                _selectedModel.value = savedModel
+
+                                                Log.i("ModelDebug", "🔄 Model changed:")
+                                                Log.i("ModelDebug", "   FROM: ${previousModel.displayName}")
+                                                Log.i("ModelDebug", "   TO: ${savedModel.displayName}")
+                                                logModelState("LOADED SAVED MODEL")
+                                            } else {
+                                                Log.d("ModelDebug", "✅ Saved model matches current, no change needed")
+                                            }
+                                        }
+                                    } else {
+                                        Log.w("ModelDebug", "❌ Saved model ID '${preference.selectedModelId}' not found in availableModels")
+                                        Log.w("ModelDebug", "Available model IDs: ${availableModels.map { it.id }}")
+
+                                        // Modelo não encontrado, usar padrão e atualizar banco
+                                        _selectedModel.value = defaultModel
+                                        logModelState("FALLBACK TO DEFAULT (MODEL NOT FOUND)")
+
+                                        try {
+                                            modelPreferenceDao.insertOrUpdatePreference(
+                                                ModelPreferenceEntity(
+                                                    userId = userId,
+                                                    selectedModelId = defaultModel.id
+                                                )
+                                            )
+                                            Log.i("ModelDebug", "💾 Updated preference to default model due to missing saved model")
+                                        } catch (e: Exception) {
+                                            Log.e("ModelDebug", "❌ Error updating model preference to default", e)
+                                        }
+                                    }
+                                } else {
+                                    Log.i("ModelDebug", "🆕 No model preference found for user $userId, using default")
+                                    logModelState("NO PREFERENCE FOUND")
+
+                                    // Primeira vez do usuário, salvar o modelo padrão
+                                    try {
+                                        modelPreferenceDao.insertOrUpdatePreference(
+                                            ModelPreferenceEntity(
+                                                userId = userId,
+                                                selectedModelId = defaultModel.id
+                                            )
+                                        )
+                                        Log.i("ModelDebug", "💾 Saved default model preference for new user")
+                                        logModelState("SAVED DEFAULT FOR NEW USER")
+                                    } catch (e: Exception) {
+                                        Log.e("ModelDebug", "❌ Error saving default model preference for new user", e)
+                                    }
+                                }
+                            }
                     }
+                } else {
+                    Log.d("ModelDebug", "👤 User not logged in, using default model")
+                    _selectedModel.value = defaultModel
+                    logModelState("USER NOT LOGGED IN")
                 }
+            }
         }
 
         // wait for "new conversation" creation or any task
@@ -2035,8 +2146,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleLogin() {
         Log.d("ChatViewModel", "handleLogin() called - user=${_userIdFlow.value}")
-        //Log.d("ChatViewModel", "[LOG] _selectedModel.value alterado para: " + (defaultModel).displayName);
-        _selectedModel.value = defaultModel
+
+        // 🔧 REMOVIDO: _selectedModel.value = defaultModel
+        // (Deixe o carregamento de preferências cuidar disso)
+
         _showConversations.value = true
 
         // Notifica BillingViewModel uma única vez
