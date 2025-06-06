@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,12 +13,32 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -64,7 +86,9 @@ import kotlinx.coroutines.launch
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class ThemePreferences(private val context: Context) {
-    companion object { val DARK_THEME_ENABLED = booleanPreferencesKey("dark_mode_enabled") }
+    companion object {
+        val DARK_THEME_ENABLED = booleanPreferencesKey("dark_mode_enabled")
+    }
 
     val isDarkThemeEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[DARK_THEME_ENABLED] ?: true // Default to dark theme
@@ -274,13 +298,12 @@ class MainActivity : ComponentActivity() {
                     PrimaryColor.toArgb()
                 }
 
-                val BackgroundColorBlack = Color(0xFF121212)
-                val BackgroundColor      = Color(0xFFF0F4F7)
+                val backgroundColor = if (isDarkThemeEnabled) Color(0xFF121212).toArgb() else Color(0xFFF0F4F7).toArgb()
 
                 window.statusBarColor = topBarColor
                 window.navigationBarColor = topBarColor
 
-                window.decorView.setBackgroundColor(if (isDarkThemeEnabled) BackgroundColorBlack.toArgb() else BackgroundColor.toArgb())
+                window.decorView.setBackgroundColor(backgroundColor)
 
                 WindowInsetsControllerCompat(window, window.decorView).apply {
                     isAppearanceLightStatusBars = false
@@ -353,92 +376,57 @@ class MainActivity : ComponentActivity() {
                                     onThemeChanged  = { enabled -> lifecycleScope.launch { themePreferences.setDarkThemeEnabled(enabled) } }
                                 )
                             }
+
+                            @OptIn(ExperimentalMaterial3Api::class)
                             composable(Routes.USER_PROFILE) {
+                                val user by authViewModel.currentUser.collectAsState()
+                                val isPremium by chatViewModelInstance.isPremiumUser.collectAsState()
+                                val planType by chatViewModelInstance.userPlanType.collectAsState()
+
+                                // ✅ SOLUÇÃO: UserProfileScreen já é autossuficiente
+                                // Ele tem seu próprio Scaffold, TopBar, e verticalScroll
+                                // NÃO precisamos de nada extra aqui!
+
                                 UserProfileScreen(
                                     onNavigateBack = { navController.popBackStack() },
                                     onNavigateToPayment = {
-                                        // ✅ PROTEÇÃO: Verificar billing antes de navegar
-                                        Log.d("MainActivity", "=== TENTATIVA DE NAVEGAÇÃO PARA PAYMENT ===")
-
                                         if (isBillingAvailable()) {
-                                            Log.d("MainActivity", "✅ Billing disponível - navegando para PAYMENT")
                                             navController.navigate(Routes.PAYMENT)
                                         } else {
-                                            Log.w("MainActivity", "⚠️ Billing indisponível - mostrando mensagem")
                                             Toast.makeText(
                                                 this@MainActivity,
-                                                "Sistema de pagamentos temporariamente indisponível. Tente novamente em alguns minutos.",
+                                                "Sistema de pagamentos indisponível.",
                                                 Toast.LENGTH_LONG
                                             ).show()
                                         }
                                     },
-                                    // ✅ NOVO: Adicionar navegação para limites de uso
                                     onNavigateToUsageLimits = {
-                                        Log.d("MainActivity", "Navegando para tela de limites de uso")
+                                        Log.d("MainActivity", "Navegando para limites via Profile")
                                         navController.navigate(Routes.USAGE_LIMITS)
                                     },
                                     authViewModel = authViewModel,
+                                    settingsViewModel = viewModel(),
                                     isDarkTheme = isDarkThemeEnabled
                                 )
                             }
+
                             composable(Routes.PAYMENT) {
-                                // ✅ PROTEÇÃO: Verificar billing para payment screen
-                                val billingAvailable = remember {
-                                    Log.d("MainActivity", "=== VERIFICANDO BILLING PARA PAYMENT SCREEN ===")
-
-                                    val app = applicationContext as? BrainstormiaApplication
-                                    val billing = app?.billingViewModel
-
-                                    val isReady = billing != null
-
-                                    Log.d("MainActivity", "Billing ready: $isReady")
-                                    Log.d("MainActivity", "Current user: ${authViewModel.currentUser.value?.email}")
-
-                                    if (billing != null) {
-                                        Log.d("MainActivity", "✅ BillingViewModel encontrado")
-                                    } else {
-                                        Log.e("MainActivity", "❌ BillingViewModel é NULL")
-                                    }
-
-                                    isReady
-                                }
-
-                                if (billingAvailable) {
-                                    // ✅ Sistema de billing disponível - usar PaymentScreen normal
-                                    Log.d("MainActivity", "=== CARREGANDO PAYMENT SCREEN NORMAL ===")
-
+                                if (isBillingAvailable()) {
                                     PaymentScreen(
-                                        onNavigateBack = {
-                                            Log.d("MainActivity", "Voltando da tela de pagamento")
-                                            navController.popBackStack()
-                                        },
-                                        onPurchaseComplete = {
-                                            Log.d("MainActivity", "✅ Compra completada - voltando para perfil")
-                                            navController.popBackStack(Routes.USER_PROFILE, inclusive = false)
-                                        },
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onPurchaseComplete = { navController.popBackStack(Routes.USER_PROFILE, inclusive = false) },
                                         isDarkTheme = isDarkThemeEnabled
                                     )
                                 } else {
-                                    // ✅ Sistema de billing indisponível - usar Fallback
-                                    Log.w("MainActivity", "⚠️ Billing indisponível - usando FallbackPaymentScreen")
-
                                     FallbackPaymentScreen(
-                                        onNavigateBack = {
-                                            Log.d("MainActivity", "Voltando do fallback payment")
-                                            navController.popBackStack()
-                                        },
+                                        onNavigateBack = { navController.popBackStack() },
                                         isDarkTheme = isDarkThemeEnabled
                                     )
                                 }
                             }
-
-                            // ✅ NOVA ROTA: Tela de limites de uso
                             composable(Routes.USAGE_LIMITS) {
                                 UsageLimitsScreen(
-                                    onBack = {
-                                        Log.d("MainActivity", "Voltando da tela de limites de uso")
-                                        navController.popBackStack()
-                                    },
+                                    onBack = { navController.popBackStack() },
                                     isDarkTheme = isDarkThemeEnabled
                                 )
                             }

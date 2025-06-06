@@ -66,6 +66,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import com.ivip.brainstormia.models.PlanStats
 
 enum class LoadingState { IDLE, LOADING, ERROR }
 
@@ -1477,15 +1478,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 val result = apiService.checkAndIncrementModelUsage(modelName)
                 result.fold(
                     onSuccess = { usageInfo ->
-                        Log.d(TAG, "Limites verificados: ${usageInfo.current}/${usageInfo.limit}")
-                        if (usageInfo.remaining > 0) {
+                        Log.d(TAG, "Limites verificados: ${usageInfo.usage?.current}/${usageInfo.usage?.limit}")
+                        if ((usageInfo.usage?.remaining ?: 0) > 0) {
                             Result.success(true)
                         } else {
                             withContext(Dispatchers.Main) {
                                 val resetDate =
                                     SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                                        .format(Date(usageInfo.resetAt))
-
+                                        .format(Date(usageInfo.usage?.resetAt ?: 0L))
                                 _errorMessage.value = if (_isPremiumUser.value) {
                                     "Limite diário atingido para ${_selectedModel.value.displayName}. " +
                                             "Próximo reset: $resetDate"
