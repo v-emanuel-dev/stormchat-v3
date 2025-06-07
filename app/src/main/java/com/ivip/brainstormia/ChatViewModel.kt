@@ -1458,6 +1458,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 //        }
 //    }
 
+    // Adicionar este método de debug no ChatViewModel
+    fun debugPremiumState() {
+        Log.d("ChatViewModel", "=== DEBUG PREMIUM STATE ===")
+        Log.d("ChatViewModel", "ChatViewModel Premium: ${_isPremiumUser.value}")
+        Log.d("ChatViewModel", "ChatViewModel Plan: ${_userPlanType.value}")
+        Log.d("ChatViewModel", "Selected Model: ${_selectedModel.value.displayName}")
+        Log.d("ChatViewModel", "Model is Premium: ${_selectedModel.value.isPremium}")
+        Log.d("ChatViewModel", "User ID: ${_userIdFlow.value}")
+        Log.d("ChatViewModel", "==========================")
+
+        // Debug do BillingViewModel também
+        billingVM.debugPremiumStatus()
+    }
+
     // ADICIONAR ESTE MÉTODO COMPLETO:
     /**
      * Verificar limites de uso para um modelo específico antes de enviar mensagem
@@ -1617,6 +1631,36 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
+
+        viewModelScope.launch {
+            billingVM.isPremiumUser.collect { isPremium ->
+                Log.d("ChatViewModel", "[STATE SYNC] BillingVM→ChatVM: isPremium=$isPremium")
+                Log.d("ChatViewModel", "[STATE SYNC] Previous state: ${_isPremiumUser.value}")
+
+                if (_isPremiumUser.value != isPremium) {
+                    Log.i("ChatViewModel", "[STATE SYNC] ✅ Atualizando status premium: $isPremium")
+                    _isPremiumUser.value = isPremium
+                    validateCurrentModel(isPremium)
+
+                    // Debug após atualização
+                    Log.d("ChatViewModel", "[STATE SYNC] Status atualizado. Nova validação de modelo...")
+                    debugPremiumState()
+                } else {
+                    Log.d("ChatViewModel", "[STATE SYNC] ⚡ Status já sincronizado")
+                }
+            }
+        }
+
+        // Observar mudanças no tipo de plano
+        viewModelScope.launch {
+            billingVM.userPlanType.collect { planType ->
+                Log.d("ChatViewModel", "[STATE SYNC] BillingVM→ChatVM: planType=$planType")
+                if (_userPlanType.value != planType) {
+                    Log.i("ChatViewModel", "[STATE SYNC] ✅ Atualizando tipo de plano: $planType")
+                    _userPlanType.value = planType
+                }
+            }
+        }
 
         viewModelScope.launch {
             // O ChatViewModel agora APENAS OBSERVA o estado do BillingViewModel.
@@ -2101,12 +2145,23 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      * do StateFlow isPremiumUser do BillingViewModel.
      */
     fun forceCheckPremiumStatus() {
-        Log.d("ChatViewModel", "Forcing premium status check by delegating to BillingViewModel.")
+        Log.d("ChatViewModel", "🔄 Forçando verificação completa de status premium")
 
-        // Simplesmente pede ao BillingViewModel para se re-validar.
-        // O ChatViewModel não precisa se preocupar com o resultado aqui,
-        // pois ele já está observando o StateFlow do BillingViewModel no bloco init.
-        billingVM.checkPremiumStatus(forceRefresh = true, caller = "ChatViewModel_forceCheck")
+        // Debug estado atual
+        debugPremiumState()
+
+        // Primeiro: forçar sincronização com backend
+        billingVM.forceBackendSync()
+
+        // Aguardar um pouco e fazer verificação completa
+        viewModelScope.launch {
+            delay(1000)
+            billingVM.forceCompleteRefresh()
+
+            // Aguardar mais um pouco e verificar novamente
+            delay(2000)
+            debugPremiumState()
+        }
     }
 
     fun handleLogin() {

@@ -14,6 +14,8 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.PurchasesResponseListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
@@ -30,13 +32,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * ViewModel simplificado para gerenciar assinaturas premium
- * Usa o Backend como única fonte de verdade
+ * Usa o Backend como única fonte de verdade com fallback para Google Play
  */
 class BillingViewModel private constructor(application: Application) :
     AndroidViewModel(application), PurchasesUpdatedListener {
@@ -134,7 +137,6 @@ class BillingViewModel private constructor(application: Application) :
                     }
                     BillingClient.BillingResponseCode.BILLING_UNAVAILABLE -> {
                         Log.e(TAG, "❌ Billing indisponível no dispositivo")
-                        // Não definir como inicializado
                     }
                     BillingClient.BillingResponseCode.ERROR -> {
                         Log.e(TAG, "❌ Erro genérico no BillingClient")
@@ -187,8 +189,7 @@ class BillingViewModel private constructor(application: Application) :
     }
 
     /**
-     * Verifica status premium do usuário
-     * ÚNICA fonte de verdade: Backend (com proteção para compras pendentes)
+     * ✅ CORREÇÃO: Verificação premium com fallback inteligente
      */
     fun checkPremiumStatus(forceRefresh: Boolean = false, caller: String = "unknown") {
         Log.d(TAG, "🔍 checkPremiumStatus chamado por: $caller (forceRefresh=$forceRefresh)")
@@ -215,22 +216,18 @@ class BillingViewModel private constructor(application: Application) :
 
                 // Garante que apenas uma verificação aconteça por vez
                 checkPremiumMutex.withLock {
-                    // ✅ INÍCIO DA CORREÇÃO APLICADA
                     Log.d(TAG, "Iniciando verificação premium sincronizada (caller: $caller)")
                     lastCheckTime = System.currentTimeMillis()
 
-                    // Proteção temporal aprimorada após a compra.
-                    // Esta é a mudança mais crítica para resolver o problema.
+                    // ✅ PROTEÇÃO TEMPORAL: Compra recente detectada
                     val protectionTimeLeft = (recentPurchaseProtection + PURCHASE_PROTECTION_DURATION) - now
                     if (protectionTimeLeft > 0) {
                         Log.w(TAG, "🛡️ PROTEÇÃO TEMPORAL ATIVA: Compra recente detectada. Mantendo status premium. (${protectionTimeLeft / 1000}s restantes)")
                         if (!_isPremiumUser.value) {
-                            // Garante que o status premium seja ativado se a proteção estiver ativa
                             updatePremiumStatus(true, _userPlanType.value ?: "Premium")
                         }
-                        return@withLock // Impede a verificação com o backend durante o período de proteção
+                        return@withLock
                     }
-                    // ✅ FIM DA CORREÇÃO APLICADA
 
                     // Se há compras pendentes salvas, não sobrescrever o status premium
                     if (hasRecentPendingPurchases() && _isPremiumUser.value && !forceRefresh) {
@@ -255,40 +252,200 @@ class BillingViewModel private constructor(application: Application) :
                     _isPremiumLoading.value = true
 
                     try {
-                        // 1. Verificar no Backend (fonte de verdade)
-                        val isPremium = verifyWithBackend()
+                        // ✅ NOVA ESTRATÉGIA: Verificação com fallback inteligente
+                        Log.d(TAG, "🔍 Iniciando verificação premium com fallback...")
 
-                        if (isPremium != null) {
-                            // VERIFICAÇÃO ADICIONAL: Se backend retorna false mas temos compras pendentes, manter status atual
-                            if (!isPremium.first && hasRecentPendingPurchases() && _isPremiumUser.value) {
-                                Log.w(TAG, "🛡️ Backend retornou false, mas há compras pendentes. Mantendo status premium atual.")
+                        // 1. Primeiro tentar o backend
+                        val backendResult = verifyWithBackend()
+
+                        if (backendResult != null) {
+                            val (backendPremium, backendPlanType) = backendResult
+                            Log.d(TAG, "✅ Backend respondeu: Premium=$backendPremium")
+
+                            if (backendPremium) {
+                                // Backend confirma premium - confiar nele
+                                updatePremiumStatus(backendPremium, backendPlanType)
+                                updateFirebaseStatus(backendPremium, backendPlanType)
                                 return@withLock
+                            } else {
+                                // Backend nega premium - verificar Google Play antes de aceitar
+                                Log.d(TAG, "❌ Backend nega premium, verificando Google Play como fallback...")
+
+                                val googlePlayHasPremium = checkGooglePlayForActivePurchases()
+
+                                if (googlePlayHasPremium.first) {
+                                    Log.w(TAG, "⚠️ DISCREPÂNCIA DETECTADA:")
+                                    Log.w(TAG, "   Backend: Premium=false")
+                                    Log.w(TAG, "   Google Play: Premium=true (${googlePlayHasPremium.second})")
+                                    Log.w(TAG, "🛡️ CONFIANDO NO GOOGLE PLAY e tentando ressincronizar...")
+
+                                    // Confiar no Google Play e tentar ressincronizar
+                                    updatePremiumStatus(true, googlePlayHasPremium.second)
+                                    updateFirebaseStatus(true, googlePlayHasPremium.second)
+
+                                    // Tentar ressincronizar em background
+                                    viewModelScope.launch {
+                                        processExistingPurchases()
+                                    }
+                                } else {
+                                    // Ambos negam - usuário realmente não é premium
+                                    Log.d(TAG, "✅ Backend e Google Play confirmam: usuário não é premium")
+                                    updatePremiumStatus(false, null)
+                                    updateFirebaseStatus(false, null)
+                                }
                             }
-
-                            // Backend respondeu com sucesso
-                            updatePremiumStatus(isPremium.first, isPremium.second)
-
-                            // Atualiza Firebase com dados do backend
-                            updateFirebaseStatus(isPremium.first, isPremium.second)
                         } else {
-                            // 2. Se backend falhou, tenta Firebase como fallback
-                            Log.w(TAG, "Backend indisponível, usando Firebase como fallback")
-                            val firebaseStatus = verifyWithFirebase()
-                            updatePremiumStatus(firebaseStatus.first, firebaseStatus.second)
+                            // Backend indisponível - usar apenas Google Play
+                            Log.w(TAG, "❌ Backend indisponível, usando apenas Google Play")
+
+                            val googlePlayResult = checkGooglePlayForActivePurchases()
+                            updatePremiumStatus(googlePlayResult.first, googlePlayResult.second)
+
+                            if (googlePlayResult.first) {
+                                updateFirebaseStatus(googlePlayResult.first, googlePlayResult.second)
+                            }
                         }
 
                     } catch (e: CancellationException) {
                         Log.d(TAG, "Verificação cancelada")
-                        throw e // Re-throw para manter o cancelamento
+                        throw e
                     } catch (e: Exception) {
                         Log.e(TAG, "Erro ao verificar premium: ${e.message}", e)
-                        // Em caso de erro, mantém o último estado conhecido
+
+                        // ✅ FALLBACK DE EMERGÊNCIA: Em caso de erro, verificar Google Play
+                        try {
+                            Log.w(TAG, "🆘 Fallback de emergência: verificando apenas Google Play")
+                            val googlePlayResult = checkGooglePlayForActivePurchases()
+                            if (googlePlayResult.first) {
+                                Log.i(TAG, "🛡️ Google Play confirma premium em fallback de emergência")
+                                updatePremiumStatus(googlePlayResult.first, googlePlayResult.second)
+                            }
+                        } catch (e2: Exception) {
+                            Log.e(TAG, "Falha total na verificação premium: ${e2.message}")
+                        }
                     } finally {
                         _isPremiumLoading.value = false
                     }
                 }
             } catch (e: CancellationException) {
                 Log.d(TAG, "Job de verificação cancelado")
+            }
+        }
+    }
+
+    /**
+     * ✅ CORREÇÃO: Verifica se há compras ativas no Google Play - Separado em duas funções
+     */
+    private suspend fun checkGooglePlayForActivePurchases(): Pair<Boolean, String?> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (!billingClient.isReady) {
+                    Log.w(TAG, "BillingClient não está pronto para verificação de compras ativas")
+                    return@withContext Pair(false, null)
+                }
+
+                Log.d(TAG, "🔍 Verificando compras ativas no Google Play...")
+
+                // Primeiro verificar assinaturas
+                val subscriptionResult = checkSubscriptionPurchases()
+                if (subscriptionResult.first) {
+                    return@withContext subscriptionResult
+                }
+
+                // Se não encontrou assinaturas, verificar compras únicas
+                val inAppResult = checkInAppPurchases()
+                return@withContext inAppResult
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao verificar compras ativas no Google Play: ${e.message}", e)
+                return@withContext Pair(false, null)
+            }
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Verifica apenas assinaturas
+     */
+    private suspend fun checkSubscriptionPurchases(): Pair<Boolean, String?> {
+        val subscriptionsParams = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.SUBS)
+            .build()
+
+        return suspendQueryPurchases(subscriptionsParams) { billingResult, purchasesList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val activeSubs = purchasesList.filter { purchase ->
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                }
+
+                if (activeSubs.isNotEmpty()) {
+                    val purchase = activeSubs.first()
+                    val productId = purchase.products.firstOrNull()
+                    val planType = determinePlanType(productId)
+
+                    Log.i(TAG, "✅ Google Play: Assinatura ativa encontrada - $productId")
+                    Log.d(TAG, "   Purchase Token: ${purchase.purchaseToken.take(20)}...")
+                    Log.d(TAG, "   Order ID: ${purchase.orderId}")
+                    Log.d(TAG, "   Purchase Time: ${purchase.purchaseTime}")
+                    Log.d(TAG, "   Acknowledged: ${purchase.isAcknowledged}")
+
+                    Pair(true, planType)
+                } else {
+                    Log.d(TAG, "❌ Google Play: Nenhuma assinatura ativa encontrada")
+                    Pair(false, null)
+                }
+            } else {
+                Log.w(TAG, "Erro ao consultar assinaturas: ${billingResult.debugMessage}")
+                Pair(false, null)
+            }
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Verifica apenas compras únicas (in-app)
+     */
+    private suspend fun checkInAppPurchases(): Pair<Boolean, String?> {
+        val inAppParams = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+
+        return suspendQueryPurchases(inAppParams) { billingResult, purchasesList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val activeInApp = purchasesList.filter { purchase ->
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                }
+
+                if (activeInApp.isNotEmpty()) {
+                    val purchase = activeInApp.first()
+                    val productId = purchase.products.firstOrNull()
+                    val planType = determinePlanType(productId)
+
+                    Log.i(TAG, "✅ Google Play: Compra única ativa encontrada - $productId")
+                    Log.d(TAG, "   Purchase Token: ${purchase.purchaseToken.take(20)}...")
+                    Log.d(TAG, "   Order ID: ${purchase.orderId}")
+
+                    Pair(true, planType)
+                } else {
+                    Log.d(TAG, "❌ Google Play: Nenhuma compra única ativa encontrada")
+                    Pair(false, null)
+                }
+            } else {
+                Log.w(TAG, "Erro ao consultar compras in-app: ${billingResult.debugMessage}")
+                Pair(false, null)
+            }
+        }
+    }
+
+    /**
+     * ✅ FUNÇÃO HELPER: Converte callback em suspend function
+     */
+    private suspend fun suspendQueryPurchases(
+        params: QueryPurchasesParams,
+        callback: (BillingResult, List<Purchase>) -> Pair<Boolean, String?>
+    ): Pair<Boolean, String?> {
+        return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+            billingClient.queryPurchasesAsync(params) { billingResult, purchasesList ->
+                val result = callback(billingResult, purchasesList)
+                continuation.resumeWith(Result.success(result))
             }
         }
     }
@@ -314,7 +471,6 @@ class BillingViewModel private constructor(application: Application) :
 
             if (response != null) {
                 Log.i(TAG, "✅ Backend: Premium=${response.hasAccess}, Plano=${response.subscriptionType}")
-                updatePremiumStatus(response.hasAccess, response.subscriptionType)
                 Pair(response.hasAccess, response.subscriptionType)
             } else {
                 Log.e(TAG, "Timeout na validação do backend")
@@ -454,7 +610,7 @@ class BillingViewModel private constructor(application: Application) :
     }
 
     /**
-     * Callback de compras atualizadas
+     * ✅ CORREÇÃO: Callback de compras atualizadas com processamento de compras existentes
      */
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: List<Purchase>?) {
         Log.d(TAG, "onPurchasesUpdated: ${billingResult.responseCode}")
@@ -464,8 +620,6 @@ class BillingViewModel private constructor(application: Application) :
                 BillingClient.BillingResponseCode.OK -> {
                     purchases?.forEach { purchase ->
                         Log.i(TAG, "✅ Compra bem-sucedida: ${purchase.orderId}")
-
-                        // Verificar se a compra é válida
                         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
                             handlePurchase(purchase)
                         } else {
@@ -480,7 +634,14 @@ class BillingViewModel private constructor(application: Application) :
 
                 BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
                     Log.i(TAG, "⚠️ Item já pertence ao usuário")
-                    // Força verificação do status
+
+                    // ✅ CORREÇÃO CRÍTICA: Verificar e processar compras existentes
+                    Log.i(TAG, "🔍 Processando compras existentes...")
+                    viewModelScope.launch {
+                        processExistingPurchases()
+                    }
+
+                    // Forçar verificação de status após processar compras existentes
                     checkPremiumStatus(forceRefresh = true, caller = "onPurchasesUpdated-already_owned")
                 }
 
@@ -504,7 +665,177 @@ class BillingViewModel private constructor(application: Application) :
     }
 
     /**
-     * ✅ CORREÇÃO: Verificação do orderId na função handlePurchase
+     * ✅ CORREÇÃO: Processa compras existentes - Agora usa as funções separadas
+     */
+    private suspend fun processExistingPurchases() {
+        if (!billingClient.isReady) {
+            Log.w(TAG, "BillingClient não está pronto para verificar compras existentes")
+            return
+        }
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Log.w(TAG, "Usuário não autenticado para processar compras existentes")
+            return
+        }
+
+        try {
+            Log.d(TAG, "🔍 Verificando compras existentes no Google Play...")
+
+            // Primeiro verificar assinaturas
+            val subscriptionResult = processExistingSubscriptions(currentUser)
+            if (subscriptionResult) {
+                Log.d(TAG, "✅ Processamento de compras existentes concluído (assinatura encontrada)")
+                return
+            }
+
+            // Se não encontrou assinaturas, verificar compras únicas
+            val inAppResult = processExistingInAppPurchases(currentUser)
+            if (inAppResult) {
+                Log.d(TAG, "✅ Processamento de compras existentes concluído (compra única encontrada)")
+                return
+            }
+
+            Log.d(TAG, "✅ Processamento de compras existentes concluído (nenhuma compra ativa)")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao processar compras existentes", e)
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Processa assinaturas existentes
+     */
+    private suspend fun processExistingSubscriptions(currentUser: com.google.firebase.auth.FirebaseUser): Boolean {
+        val subscriptionsParams = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.SUBS)
+            .build()
+
+        val result = suspendQueryPurchases(subscriptionsParams) { billingResult, purchasesList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val activePurchases = purchasesList.filter { purchase ->
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                }
+
+                Log.d(TAG, "Encontradas ${activePurchases.size} assinaturas ativas")
+
+                if (activePurchases.isNotEmpty()) {
+                    val purchase = activePurchases.first()
+                    val productId = purchase.products.firstOrNull()
+
+                    if (productId != null) {
+                        val planType = determinePlanType(productId)
+                        Log.i(TAG, "📦 Processando assinatura existente: $productId -> $planType")
+
+                        // Atualizar status imediatamente baseado no Google Play
+                        updatePremiumStatus(true, planType)
+
+                        // Tentar sincronizar com o backend em background
+                        syncPurchaseWithBackend(currentUser, purchase, productId, planType)
+
+                        // Reconhecer a compra se ainda não foi reconhecida
+                        if (!purchase.isAcknowledged) {
+                            acknowledgePurchase(purchase)
+                        }
+
+                        return@suspendQueryPurchases Pair(true, planType)
+                    }
+                }
+            }
+            Pair(false, null)
+        }
+
+        return result.first
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Processa compras únicas existentes
+     */
+    private suspend fun processExistingInAppPurchases(currentUser: com.google.firebase.auth.FirebaseUser): Boolean {
+        val inAppParams = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+
+        val result = suspendQueryPurchases(inAppParams) { billingResult, purchasesList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val activePurchases = purchasesList.filter { purchase ->
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                }
+
+                Log.d(TAG, "Encontradas ${activePurchases.size} compras únicas ativas")
+
+                if (activePurchases.isNotEmpty()) {
+                    val purchase = activePurchases.first()
+                    val productId = purchase.products.firstOrNull()
+
+                    if (productId != null) {
+                        val planType = determinePlanType(productId)
+                        Log.i(TAG, "📦 Processando compra única existente: $productId -> $planType")
+
+                        // Atualizar status baseado no Google Play
+                        updatePremiumStatus(true, planType)
+
+                        // Tentar sincronizar com o backend em background
+                        syncPurchaseWithBackend(currentUser, purchase, productId, planType)
+
+                        // Reconhecer a compra se necessário
+                        if (!purchase.isAcknowledged) {
+                            acknowledgePurchase(purchase)
+                        }
+
+                        return@suspendQueryPurchases Pair(true, planType)
+                    }
+                }
+            }
+            Pair(false, null)
+        }
+
+        return result.first
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Sincroniza compra com backend (extraída para reutilização)
+     */
+    private fun syncPurchaseWithBackend(
+        currentUser: com.google.firebase.auth.FirebaseUser,
+        purchase: Purchase,
+        productId: String,
+        planType: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val tokenResult = withTimeoutOrNull(5000L) {
+                    currentUser.getIdToken(false).await()
+                }
+
+                if (tokenResult?.token != null) {
+                    Log.d(TAG, "🔄 Tentando sincronizar compra existente com backend...")
+
+                    val success = withTimeoutOrNull(10000L) {
+                        apiClient.setPremiumStatus(
+                            uid = currentUser.uid,
+                            purchaseToken = purchase.purchaseToken,
+                            productId = productId,
+                            planType = planType,
+                            userToken = tokenResult.token!!,
+                            orderId = purchase.orderId ?: ""
+                        )
+                    }
+
+                    if (success == true) {
+                        Log.i(TAG, "✅ Compra existente sincronizada com backend")
+                    } else {
+                        Log.w(TAG, "❌ Falha ao sincronizar com backend, mas status já atualizado baseado no Google Play")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao sincronizar com backend: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * ✅ CORREÇÃO: Verificar a função handlePurchase para usar purchase.orderId
      */
     private fun handlePurchase(purchase: Purchase) {
         try {
@@ -533,7 +864,6 @@ class BillingViewModel private constructor(application: Application) :
                     }
 
                     // Validação do orderId
-                    // ✅ CORREÇÃO: Armazenar em uma variável local
                     val purchaseOrderId = purchase.orderId
                     if (purchaseOrderId.isNullOrBlank()) {
                         Log.e(TAG, "❌ OrderId inválido!")
@@ -602,7 +932,7 @@ class BillingViewModel private constructor(application: Application) :
                 } catch (e: Exception) {
                     Log.e(TAG, "❌ Erro ao processar compra: ${e.message}", e)
 
-                    // ✅ CORREÇÃO: Aplicar fallback local em caso de exceção - usar purchase.orderId
+                    // ✅ CORREÇÃO: Aplicar fallback local em caso de exceção
                     Log.w(TAG, "⚠️ Aplicando fallback local para compra confirmada (exception)")
                     updatePremiumStatus(true, planType)
                     updateFirebaseStatus(true, planType, purchase.orderId, purchase.purchaseTime, productId)
@@ -727,6 +1057,7 @@ class BillingViewModel private constructor(application: Application) :
             Log.d(TAG, "🛡️ Verificação segura bloqueada para: $caller (proteções ativas)")
         }
     }
+
     private fun hasRecentPendingPurchases(): Boolean {
         if (pendingPurchaseSyncs.isEmpty()) {
             return false
@@ -774,10 +1105,10 @@ class BillingViewModel private constructor(application: Application) :
             Log.d(TAG, "🧹 Limpeza: ${sizeBefore - pendingPurchaseSyncs.size} compras antigas removidas")
         }
     }
+
     fun retryPendingSyncs() {
         viewModelScope.launch {
             try {
-                // ✅ CORREÇÃO: Declarar currentUser no início da função
                 val currentUser = FirebaseAuth.getInstance().currentUser
                 if (currentUser == null) {
                     Log.d(TAG, "Usuário não autenticado para sincronização pendente")
@@ -809,9 +1140,7 @@ class BillingViewModel private constructor(application: Application) :
                         continue
                     }
 
-                    // ✅ CORREÇÃO: Verificar o orderId antes de chamar a API
-                    // Se orderId for nulo, passamos uma string vazia ou valor padrão
-                    val syncOrderId = pendingSync.orderId ?: ""  // Ou use outro valor padrão se necessário
+                    val syncOrderId = pendingSync.orderId ?: ""
 
                     // Tentar enviar para o backend
                     val success = withTimeoutOrNull(10000L) {
@@ -821,7 +1150,7 @@ class BillingViewModel private constructor(application: Application) :
                             productId = pendingSync.productId,
                             planType = pendingSync.planType,
                             userToken = tokenResult.token!!,
-                            orderId = syncOrderId  // Agora usando a variável não-nula
+                            orderId = syncOrderId
                         )
                     }
 
@@ -910,19 +1239,18 @@ class BillingViewModel private constructor(application: Application) :
 
     /**
      * Atualiza status no Firebase
-     * ✅ CORREÇÃO: Alterado o parâmetro orderId para aceitar String?
      */
     private fun updateFirebaseStatus(
         isPremium: Boolean,
         planType: String?,
-        orderId: String? = null,  // Alterado para String? (nullable)
+        orderId: String? = null,
         purchaseTime: Long? = null,
         productId: String? = null
     ) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return
 
         // ✅ CORREÇÃO: Usar UID ao invés de email
-        val documentId = currentUser.uid  // ← MUDANÇA CRÍTICA
+        val documentId = currentUser.uid
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -931,7 +1259,7 @@ class BillingViewModel private constructor(application: Application) :
                     "planType" to planType,
                     "updatedAt" to FieldValue.serverTimestamp(),
                     "userId" to currentUser.uid,
-                    "userEmail" to (currentUser.email ?: "no-email")  // ← Salvar email como campo, não chave
+                    "userEmail" to (currentUser.email ?: "no-email")
                 )
 
                 // Adiciona dados de compra se disponíveis
@@ -941,7 +1269,7 @@ class BillingViewModel private constructor(application: Application) :
 
                 Firebase.firestore
                     .collection("premium_users")
-                    .document(documentId)  // ← Agora usa UID consistentemente
+                    .document(documentId)
                     .set(data, SetOptions.merge())
                     .await()
 
@@ -991,7 +1319,7 @@ class BillingViewModel private constructor(application: Application) :
 
             getApplication<Application>().getSharedPreferences("billing_prefs", Context.MODE_PRIVATE)
                 .edit()
-                .putString("cached_uid", currentUid)  // ✅ Salvar UID, não email
+                .putString("cached_uid", currentUid)
                 .putBoolean("is_premium", isPremium)
                 .putString("plan_type", planType)
                 .putLong("last_check", System.currentTimeMillis())
@@ -1062,15 +1390,69 @@ class BillingViewModel private constructor(application: Application) :
      * ✅ NOVA FUNÇÃO: Força verificação completa (ignora proteção e cache)
      */
     fun forceCompleteRefresh() {
-        Log.i(TAG, "🔄 Forçando verificação completa (ignorando proteção e cache)")
-        // Limpar cache
+        Log.i(TAG, "🔄 Forçando verificação completa (ignorando TODAS as proteções)")
+
+        // Limpar TODAS as proteções
+        recentPurchaseProtection = 0L
+        pendingPurchaseSyncs.clear()
         lastVerificationTime = 0
-        // Verificar com força total
-        checkPremiumStatus(forceRefresh = true, caller = "forceCompleteRefresh")
+        cachedUserId = null
+
+        // Cancelar job anterior
+        checkPremiumJob?.cancel()
+
+        // Limpar cache em SharedPreferences
+        try {
+            getApplication<Application>().getSharedPreferences("billing_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply()
+            Log.d(TAG, "Cache SharedPreferences limpo")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao limpar cache", e)
+        }
+
+        // Forçar verificação imediata
+        checkPremiumStatus(forceRefresh = true, caller = "forceCompleteRefresh_aggressive")
+    }
+    fun forceBackendSync() {
+        Log.i(TAG, "🔄 Forçando sincronização com backend")
+
+        viewModelScope.launch {
+            try {
+                // Limpar proteções temporariamente
+                val originalProtection = recentPurchaseProtection
+                val originalPending = pendingPurchaseSyncs.toList()
+
+                recentPurchaseProtection = 0L
+                pendingPurchaseSyncs.clear()
+
+                // Verificar com backend
+                val backendResult = verifyWithBackend()
+
+                if (backendResult != null) {
+                    val (isPremium, planType) = backendResult
+                    Log.i(TAG, "🔄 Backend sync result: Premium=$isPremium, Plan=$planType")
+
+                    // Atualizar status FORÇADAMENTE
+                    updatePremiumStatus(isPremium, planType)
+                    updateFirebaseStatus(isPremium, planType)
+
+                    Log.i(TAG, "✅ Status forçado para: Premium=${_isPremiumUser.value}")
+                } else {
+                    Log.w(TAG, "❌ Backend sync falhou")
+                    // Restaurar proteções se necessário
+                    recentPurchaseProtection = originalProtection
+                    pendingPurchaseSyncs.addAll(originalPending)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro na sincronização forçada com backend", e)
+            }
+        }
     }
 
     /**
-     * Chamado quando usuário faz login/logout
+     * ✅ CORREÇÃO: Chamado quando usuário faz login/logout com sincronização melhorada
      */
     fun handleUserChanged() {
         Log.i(TAG, "Usuário mudou, verificando status...")
@@ -1080,33 +1462,31 @@ class BillingViewModel private constructor(application: Application) :
             Log.i(TAG, "Usuário logado: UID=${currentUser.uid}, Email=${currentUser.email}")
             Log.i(TAG, "Nome: ${currentUser.displayName}")
             Log.i(TAG, "Provedores: ${currentUser.providerData.map { it.providerId }}")
-            // Loga o token JWT
+
+            // Reseta cache para forçar nova verificação
+            cachedUserId = null
+            lastVerificationTime = 0
+
+            // Primeiro verifica o status premium
+            checkPremiumStatus(forceRefresh = true, caller = "handleUserChanged")
+
+            // ✅ NOVO: Depois sincroniza compras existentes com um delay
             viewModelScope.launch {
-                try {
-                    val tokenResult = currentUser.getIdToken(false).await()
-                    val jwt = tokenResult?.token
-                    if (jwt != null) {
-                        Log.i(TAG, "JWT Token: $jwt")
-                    } else {
-                        Log.e(TAG, "Não foi possível obter o token JWT.")
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Erro ao obter token JWT", e)
+                delay(2000) // Aguarda verificação inicial
+
+                // Se após a verificação inicial o usuário ainda não for premium,
+                // mas o Google Play indica compras ativas, fazer sincronização
+                if (!_isPremiumUser.value) {
+                    Log.d(TAG, "🔍 Usuário não premium após verificação inicial, verificando compras do Google Play...")
+                    processExistingPurchases()
                 }
             }
+
+            // Verificar compras pendentes
+            retryPendingSyncs()
         } else {
             Log.w(TAG, "Nenhum usuário autenticado.")
         }
-
-        // Reseta cache para forçar nova verificação
-        cachedUserId = null
-        lastVerificationTime = 0
-
-        // Chama checkPremiumStatus uma única vez com forceRefresh
-        checkPremiumStatus(forceRefresh = true, caller = "handleUserChanged")
-
-        // Verificar compras pendentes
-        retryPendingSyncs()
     }
 
     /**
@@ -1295,6 +1675,18 @@ class BillingViewModel private constructor(application: Application) :
                 Log.e(TAG, "❌ Erro ao carregar produtos $productType: ${billingResult.debugMessage}")
             }
         }
+    }
+
+    fun debugPremiumStatus() {
+        Log.d(TAG, "=== DEBUG PREMIUM STATUS ===")
+        Log.d(TAG, "Current Premium Status: ${_isPremiumUser.value}")
+        Log.d(TAG, "Current Plan Type: ${_userPlanType.value}")
+        Log.d(TAG, "Recent Purchase Protection: ${(System.currentTimeMillis() - recentPurchaseProtection) < PURCHASE_PROTECTION_DURATION}")
+        Log.d(TAG, "Has Pending Purchases: ${hasRecentPendingPurchases()}")
+        Log.d(TAG, "Should Check Premium: ${shouldCheckPremiumStatus()}")
+        Log.d(TAG, "Cached User ID: $cachedUserId")
+        Log.d(TAG, "Current User ID: ${FirebaseAuth.getInstance().currentUser?.uid}")
+        Log.d(TAG, "========================")
     }
 
     /**

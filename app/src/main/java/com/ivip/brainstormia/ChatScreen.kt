@@ -923,11 +923,26 @@ fun ChatScreen(
 
     // Efeito para verificação de status quando o usuário muda ou a tela inicia.
     LaunchedEffect(currentUser) {
+        Log.d("ChatScreen", "🔄 LaunchedEffect triggered - User: ${currentUser?.uid}")
+
         if (currentUser != null) {
-            // Chama a nova função unificada que delega a verificação para o BillingViewModel.
-            // O próprio BillingViewModel já tem a lógica de cache e debounce.
-            Log.d("ChatScreen", "Usuário detectado, forçando verificação de status premium.")
+            Log.i("ChatScreen", "Usuário logado detectado, forçando verificação agressiva")
+
+            // Debug inicial
+            chatViewModel.debugPremiumState()
+
+            // Forçar verificação múltipla com delays
             chatViewModel.forceCheckPremiumStatus()
+
+            // Verificação adicional após 3 segundos
+            delay(3000)
+            Log.d("ChatScreen", "🔄 Verificação adicional após 3s")
+            chatViewModel.forceCheckPremiumStatus()
+
+            // Verificação final após 5 segundos
+            delay(5000)
+            Log.d("ChatScreen", "🔄 Verificação final após 8s")
+            chatViewModel.debugPremiumState()
         }
     }
 
