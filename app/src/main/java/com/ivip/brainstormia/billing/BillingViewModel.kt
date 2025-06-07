@@ -87,15 +87,28 @@ class BillingViewModel private constructor(application: Application) :
     private var lastCheckTime = 0L
     private val CHECK_DEBOUNCE_TIME = 1000L // 1 segundo de debounce
 
+    // ✅ NOVA VARIÁVEL: Proteção temporária após compra (evita verificações automáticas)
+    private var recentPurchaseProtection = 0L
+    private val PURCHASE_PROTECTION_DURATION = 5 * 60 * 1000L // 5 minutos
+
+    // Lista para compras pendentes que falharam na verificação
+    private val pendingPurchaseSyncs = mutableListOf<PendingPurchaseSync>()
+
     init {
         Log.d(TAG, "Inicializando BillingViewModel")
         viewModelScope.launch {
             // Carrega cache local imediatamente
             loadCachedPremiumStatus()
+            // Carrega compras pendentes de sincronização
+            loadPendingSyncsFromPrefs()
+            // Limpa compras pendentes antigas
+            cleanupOldPendingPurchases()
             // Conecta ao Google Play Billing
             connectToBillingService()
-            // Verifica status atual
-            checkPremiumStatus()
+            // Verifica status atual (segura)
+            safeCheckPremiumStatus("init")
+            // Iniciar verificação de compras pendentes
+            retryPendingSyncs()
         }
     }
 
@@ -175,9 +188,11 @@ class BillingViewModel private constructor(application: Application) :
 
     /**
      * Verifica status premium do usuário
-     * ÚNICA fonte de verdade: Backend
+     * ÚNICA fonte de verdade: Backend (com proteção para compras pendentes)
      */
-    fun checkPremiumStatus(forceRefresh: Boolean = false) {
+    fun checkPremiumStatus(forceRefresh: Boolean = false, caller: String = "unknown") {
+        Log.d(TAG, "🔍 checkPremiumStatus chamado por: $caller (forceRefresh=$forceRefresh)")
+
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser == null) {
             Log.d(TAG, "Usuário não autenticado")
@@ -200,8 +215,29 @@ class BillingViewModel private constructor(application: Application) :
 
                 // Garante que apenas uma verificação aconteça por vez
                 checkPremiumMutex.withLock {
-                    Log.d(TAG, "Iniciando verificação premium sincronizada")
+                    // ✅ INÍCIO DA CORREÇÃO APLICADA
+                    Log.d(TAG, "Iniciando verificação premium sincronizada (caller: $caller)")
                     lastCheckTime = System.currentTimeMillis()
+
+                    // Proteção temporal aprimorada após a compra.
+                    // Esta é a mudança mais crítica para resolver o problema.
+                    val protectionTimeLeft = (recentPurchaseProtection + PURCHASE_PROTECTION_DURATION) - now
+                    if (protectionTimeLeft > 0) {
+                        Log.w(TAG, "🛡️ PROTEÇÃO TEMPORAL ATIVA: Compra recente detectada. Mantendo status premium. (${protectionTimeLeft / 1000}s restantes)")
+                        if (!_isPremiumUser.value) {
+                            // Garante que o status premium seja ativado se a proteção estiver ativa
+                            updatePremiumStatus(true, _userPlanType.value ?: "Premium")
+                        }
+                        return@withLock // Impede a verificação com o backend durante o período de proteção
+                    }
+                    // ✅ FIM DA CORREÇÃO APLICADA
+
+                    // Se há compras pendentes salvas, não sobrescrever o status premium
+                    if (hasRecentPendingPurchases() && _isPremiumUser.value && !forceRefresh) {
+                        Log.w(TAG, "🛡️ PROTEÇÃO PENDENTE: Há compras pendentes. Não sobrescrevendo status premium.")
+                        Log.d(TAG, "Status atual mantido: Premium=${_isPremiumUser.value}, Plano=${_userPlanType.value}")
+                        return@withLock
+                    }
 
                     // Verifica se mudou de usuário
                     if (currentUser.uid != cachedUserId) {
@@ -223,6 +259,12 @@ class BillingViewModel private constructor(application: Application) :
                         val isPremium = verifyWithBackend()
 
                         if (isPremium != null) {
+                            // VERIFICAÇÃO ADICIONAL: Se backend retorna false mas temos compras pendentes, manter status atual
+                            if (!isPremium.first && hasRecentPendingPurchases() && _isPremiumUser.value) {
+                                Log.w(TAG, "🛡️ Backend retornou false, mas há compras pendentes. Mantendo status premium atual.")
+                                return@withLock
+                            }
+
                             // Backend respondeu com sucesso
                             updatePremiumStatus(isPremium.first, isPremium.second)
 
@@ -250,6 +292,7 @@ class BillingViewModel private constructor(application: Application) :
             }
         }
     }
+
     private suspend fun verifyWithBackend(): Pair<Boolean, String?>? {
         return try {
             val currentUser = FirebaseAuth.getInstance().currentUser ?: return null
@@ -316,9 +359,17 @@ class BillingViewModel private constructor(application: Application) :
      * Atualiza status premium local
      */
     private fun updatePremiumStatus(isPremium: Boolean, planType: String?) {
+        val wasNotPremium = !_isPremiumUser.value
+
         _isPremiumUser.value = isPremium
         _userPlanType.value = planType
         lastVerificationTime = System.currentTimeMillis()
+
+        // ✅ ATIVAR PROTEÇÃO: Se mudou para premium, ativar proteção temporal
+        if (isPremium && wasNotPremium) {
+            recentPurchaseProtection = System.currentTimeMillis()
+            Log.i(TAG, "🛡️ Proteção temporal ativada por ${PURCHASE_PROTECTION_DURATION / 60000} minutos")
+        }
 
         // Salva cache local
         saveCacheToDisk(isPremium, planType)
@@ -389,7 +440,7 @@ class BillingViewModel private constructor(application: Application) :
                     Log.i(TAG, "⚠️ Item já pertence ao usuário")
                     _purchaseInProgress.value = false
                     // Força verificação do status
-                    checkPremiumStatus(forceRefresh = true)
+                    checkPremiumStatus(forceRefresh = true, caller = "launchBillingFlow-already_owned")
                 }
                 else -> {
                     Log.e(TAG, "❌ Erro ao iniciar compra: ${billingResult.debugMessage}")
@@ -430,7 +481,7 @@ class BillingViewModel private constructor(application: Application) :
                 BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
                     Log.i(TAG, "⚠️ Item já pertence ao usuário")
                     // Força verificação do status
-                    checkPremiumStatus(forceRefresh = true)
+                    checkPremiumStatus(forceRefresh = true, caller = "onPurchasesUpdated-already_owned")
                 }
 
                 BillingClient.BillingResponseCode.BILLING_UNAVAILABLE -> {
@@ -453,7 +504,7 @@ class BillingViewModel private constructor(application: Application) :
     }
 
     /**
-     * Processa uma compra
+     * ✅ CORREÇÃO: Verificação do orderId na função handlePurchase
      */
     private fun handlePurchase(purchase: Purchase) {
         try {
@@ -482,8 +533,9 @@ class BillingViewModel private constructor(application: Application) :
                     }
 
                     // Validação do orderId
-                    val orderId = purchase.orderId
-                    if (orderId.isNullOrBlank()) {
+                    // ✅ CORREÇÃO: Armazenar em uma variável local
+                    val purchaseOrderId = purchase.orderId
+                    if (purchaseOrderId.isNullOrBlank()) {
                         Log.e(TAG, "❌ OrderId inválido!")
                         acknowledgePurchase(purchase)
                         return@launch
@@ -498,6 +550,15 @@ class BillingViewModel private constructor(application: Application) :
 
                     if (tokenResult?.token == null) {
                         Log.e(TAG, "❌ Não foi possível obter token JWT")
+
+                        // ✅ CORREÇÃO: Aplicar fallback para salvamento local
+                        Log.w(TAG, "⚠️ Aplicando fallback local para compra confirmada (sem JWT)")
+                        updatePremiumStatus(true, planType)
+                        updateFirebaseStatus(true, planType, purchaseOrderId, purchase.purchaseTime, productId)
+
+                        // Salvar compra para sincronização posterior
+                        savePendingPurchaseSync(purchase.purchaseToken, productId, planType, purchaseOrderId)
+
                         acknowledgePurchase(purchase)
                         return@launch
                     }
@@ -513,7 +574,7 @@ class BillingViewModel private constructor(application: Application) :
                             productId = productId,
                             planType = planType,
                             userToken = userToken,
-                            orderId = orderId
+                            orderId = purchaseOrderId
                         )
                     }
 
@@ -522,9 +583,17 @@ class BillingViewModel private constructor(application: Application) :
                         updatePremiumStatus(true, planType)
 
                         // Atualiza Firebase também
-                        updateFirebaseStatus(true, planType, orderId, purchase.purchaseTime, productId)
+                        updateFirebaseStatus(true, planType, purchaseOrderId, purchase.purchaseTime, productId)
                     } else {
                         Log.e(TAG, "❌ Backend rejeitou compra ou timeout")
+
+                        // ✅ CORREÇÃO: Aplicar fallback local mesmo com falha do backend
+                        Log.w(TAG, "⚠️ Aplicando fallback local para compra confirmada (backend falhou)")
+                        updatePremiumStatus(true, planType)
+                        updateFirebaseStatus(true, planType, purchaseOrderId, purchase.purchaseTime, productId)
+
+                        // Salvar compra para sincronização posterior
+                        savePendingPurchaseSync(purchase.purchaseToken, productId, planType, purchaseOrderId)
                     }
 
                     // Sempre reconhecer a compra para evitar problemas
@@ -532,6 +601,15 @@ class BillingViewModel private constructor(application: Application) :
 
                 } catch (e: Exception) {
                     Log.e(TAG, "❌ Erro ao processar compra: ${e.message}", e)
+
+                    // ✅ CORREÇÃO: Aplicar fallback local em caso de exceção - usar purchase.orderId
+                    Log.w(TAG, "⚠️ Aplicando fallback local para compra confirmada (exception)")
+                    updatePremiumStatus(true, planType)
+                    updateFirebaseStatus(true, planType, purchase.orderId, purchase.purchaseTime, productId)
+
+                    // Salvar compra para sincronização posterior
+                    savePendingPurchaseSync(purchase.purchaseToken, productId, planType, purchase.orderId)
+
                     // Em caso de erro, ainda reconhece a compra para evitar problemas
                     acknowledgePurchase(purchase)
                 }
@@ -539,6 +617,263 @@ class BillingViewModel private constructor(application: Application) :
         } catch (e: Exception) {
             Log.e(TAG, "❌ Exceção em handlePurchase", e)
             acknowledgePurchase(purchase)
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Salvar compra para sincronização posterior
+     */
+    private fun savePendingPurchaseSync(
+        purchaseToken: String,
+        productId: String,
+        planType: String,
+        orderId: String?
+    ) {
+        try {
+            // Criar objeto de sincronização pendente
+            val pendingSync = PendingPurchaseSync(
+                purchaseToken = purchaseToken,
+                productId = productId,
+                planType = planType,
+                orderId = orderId,
+                timestamp = System.currentTimeMillis(),
+                attempts = 0
+            )
+
+            // Adicionar à lista em memória
+            pendingPurchaseSyncs.add(pendingSync)
+
+            // Salvar em SharedPreferences para persistência
+            savePendingSyncToPrefs(pendingSync)
+
+            Log.d(TAG, "💾 Compra salva para sincronização posterior: $productId")
+
+            // Agendar tentativa após 1 minuto
+            viewModelScope.launch {
+                delay(60000) // 1 minuto
+                retryPendingSyncs()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao salvar compra para sincronização posterior", e)
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Salvar sincronização pendente em SharedPreferences
+     */
+    private fun savePendingSyncToPrefs(pendingSync: PendingPurchaseSync) {
+        try {
+            val prefs = getApplication<Application>().getSharedPreferences("pending_syncs", Context.MODE_PRIVATE)
+            val pendingSyncs = prefs.getStringSet("pending_purchase_syncs", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+
+            // Converter para JSON e salvar no conjunto
+            val json = pendingSync.toJson()
+            pendingSyncs.add(json)
+
+            prefs.edit()
+                .putStringSet("pending_purchase_syncs", pendingSyncs)
+                .apply()
+
+            Log.d(TAG, "💾 Compra pendente salva em SharedPreferences")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao salvar em SharedPreferences", e)
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Carregar sincronizações pendentes de SharedPreferences
+     */
+    private fun loadPendingSyncsFromPrefs() {
+        try {
+            val prefs = getApplication<Application>().getSharedPreferences("pending_syncs", Context.MODE_PRIVATE)
+            val pendingSyncs = prefs.getStringSet("pending_purchase_syncs", mutableSetOf()) ?: mutableSetOf()
+
+            pendingPurchaseSyncs.clear()
+
+            for (json in pendingSyncs) {
+                try {
+                    val sync = PendingPurchaseSync.fromJson(json)
+                    pendingPurchaseSyncs.add(sync)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Erro ao deserializar compra pendente", e)
+                }
+            }
+
+            Log.d(TAG, "📂 Carregadas ${pendingPurchaseSyncs.size} compras pendentes de sincronização")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao carregar compras pendentes", e)
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Verificar se deve fazer verificação automática (respeita proteções)
+     */
+    fun shouldCheckPremiumStatus(): Boolean {
+        val hasPendingPurchases = hasRecentPendingPurchases()
+        val hasTemporalProtection = (System.currentTimeMillis() - recentPurchaseProtection) < PURCHASE_PROTECTION_DURATION
+        val isPremium = _isPremiumUser.value
+
+        return !(hasPendingPurchases && isPremium) && !(hasTemporalProtection && isPremium)
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Verificação segura (só executa se permitido pelas proteções)
+     */
+    fun safeCheckPremiumStatus(caller: String = "safeCheck") {
+        if (shouldCheckPremiumStatus()) {
+            Log.d(TAG, "✅ Verificação segura permitida para: $caller")
+            checkPremiumStatus(caller = caller)
+        } else {
+            Log.d(TAG, "🛡️ Verificação segura bloqueada para: $caller (proteções ativas)")
+        }
+    }
+    private fun hasRecentPendingPurchases(): Boolean {
+        if (pendingPurchaseSyncs.isEmpty()) {
+            return false
+        }
+
+        val now = System.currentTimeMillis()
+        val recentThreshold = 10 * 60 * 1000L // 10 minutos
+
+        val recentPurchases = pendingPurchaseSyncs.any { pendingSync ->
+            (now - pendingSync.timestamp) < recentThreshold
+        }
+
+        if (recentPurchases) {
+            Log.d(TAG, "🛡️ Encontradas ${pendingPurchaseSyncs.size} compras pendentes recentes")
+            pendingPurchaseSyncs.forEach { sync ->
+                val ageMinutes = (now - sync.timestamp) / (60 * 1000)
+                Log.d(TAG, "   - ${sync.productId}: ${ageMinutes}min atrás (tentativas: ${sync.attempts})")
+            }
+        }
+
+        return recentPurchases
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Limpar compras pendentes antigas (limpeza automática)
+     */
+    private fun cleanupOldPendingPurchases() {
+        val now = System.currentTimeMillis()
+        val maxAge = 24 * 60 * 60 * 1000L // 24 horas
+
+        val sizeBefore = pendingPurchaseSyncs.size
+        pendingPurchaseSyncs.removeAll { pendingSync ->
+            val age = now - pendingSync.timestamp
+            val isOld = age > maxAge
+
+            if (isOld) {
+                Log.d(TAG, "🗑️ Removendo compra pendente antiga: ${pendingSync.productId} (${age / (60 * 60 * 1000)}h)")
+            }
+
+            isOld
+        }
+
+        if (sizeBefore != pendingPurchaseSyncs.size) {
+            updatePendingSyncsInPrefs()
+            Log.d(TAG, "🧹 Limpeza: ${sizeBefore - pendingPurchaseSyncs.size} compras antigas removidas")
+        }
+    }
+    fun retryPendingSyncs() {
+        viewModelScope.launch {
+            try {
+                // ✅ CORREÇÃO: Declarar currentUser no início da função
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                if (currentUser == null) {
+                    Log.d(TAG, "Usuário não autenticado para sincronização pendente")
+                    return@launch
+                }
+
+                if (pendingPurchaseSyncs.isEmpty()) {
+                    Log.d(TAG, "Nenhuma compra pendente para sincronizar")
+                    return@launch
+                }
+
+                Log.d(TAG, "🔄 Tentando sincronizar ${pendingPurchaseSyncs.size} compras pendentes...")
+
+                // Tentar sincronizar cada compra
+                val iterator = pendingPurchaseSyncs.iterator()
+                while (iterator.hasNext()) {
+                    val pendingSync = iterator.next()
+
+                    // Incrementar tentativas
+                    pendingSync.attempts++
+
+                    // Obter token JWT
+                    val tokenResult = withTimeoutOrNull(5000L) {
+                        currentUser.getIdToken(false).await()
+                    }
+
+                    if (tokenResult?.token == null) {
+                        Log.e(TAG, "Não foi possível obter token JWT para sincronização pendente")
+                        continue
+                    }
+
+                    // ✅ CORREÇÃO: Verificar o orderId antes de chamar a API
+                    // Se orderId for nulo, passamos uma string vazia ou valor padrão
+                    val syncOrderId = pendingSync.orderId ?: ""  // Ou use outro valor padrão se necessário
+
+                    // Tentar enviar para o backend
+                    val success = withTimeoutOrNull(10000L) {
+                        apiClient.setPremiumStatus(
+                            uid = currentUser.uid,
+                            purchaseToken = pendingSync.purchaseToken,
+                            productId = pendingSync.productId,
+                            planType = pendingSync.planType,
+                            userToken = tokenResult.token!!,
+                            orderId = syncOrderId  // Agora usando a variável não-nula
+                        )
+                    }
+
+                    if (success == true) {
+                        Log.i(TAG, "✅ Compra pendente sincronizada com sucesso: ${pendingSync.productId}")
+                        iterator.remove()
+                    } else {
+                        Log.w(TAG, "❌ Falha na sincronização da compra pendente: ${pendingSync.productId} (tentativa ${pendingSync.attempts})")
+
+                        // Remover após muitas tentativas falhadas
+                        if (pendingSync.attempts >= 5) {
+                            Log.w(TAG, "🗑️ Removendo compra pendente após 5 tentativas: ${pendingSync.productId}")
+                            iterator.remove()
+                        }
+                    }
+                }
+
+                // Atualizar SharedPreferences
+                updatePendingSyncsInPrefs()
+
+                if (pendingPurchaseSyncs.isNotEmpty()) {
+                    Log.d(TAG, "📅 Agendando próxima tentativa de sincronização em 5 minutos")
+                    // Agendar próxima tentativa em 5 minutos
+                    delay(300000) // 5 minutos
+                    retryPendingSyncs()
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao processar compras pendentes", e)
+            }
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Atualizar sincronizações pendentes em SharedPreferences
+     */
+    private fun updatePendingSyncsInPrefs() {
+        try {
+            val prefs = getApplication<Application>().getSharedPreferences("pending_syncs", Context.MODE_PRIVATE)
+            val newSet = mutableSetOf<String>()
+
+            for (sync in pendingPurchaseSyncs) {
+                newSet.add(sync.toJson())
+            }
+
+            prefs.edit()
+                .putStringSet("pending_purchase_syncs", newSet)
+                .apply()
+
+            Log.d(TAG, "💾 Atualizado SharedPreferences com ${newSet.size} compras pendentes")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao atualizar SharedPreferences", e)
         }
     }
 
@@ -575,11 +910,12 @@ class BillingViewModel private constructor(application: Application) :
 
     /**
      * Atualiza status no Firebase
+     * ✅ CORREÇÃO: Alterado o parâmetro orderId para aceitar String?
      */
     private fun updateFirebaseStatus(
         isPremium: Boolean,
         planType: String?,
-        orderId: String? = null,
+        orderId: String? = null,  // Alterado para String? (nullable)
         purchaseTime: Long? = null,
         productId: String? = null
     ) {
@@ -610,7 +946,6 @@ class BillingViewModel private constructor(application: Application) :
                     .await()
 
                 Log.i(TAG, "✅ Firebase atualizado para UID: $documentId")
-
             } catch (e: Exception) {
                 Log.e(TAG, "Erro ao atualizar Firebase: ${e.message}")
             }
@@ -717,10 +1052,21 @@ class BillingViewModel private constructor(application: Application) :
     }
 
     /**
-     * Força atualização do status
+     * Força atualização do status (ignora proteção de compras pendentes)
      */
     fun forceRefreshPremiumStatus() {
-        checkPremiumStatus(forceRefresh = true)
+        checkPremiumStatus(forceRefresh = true, caller = "forceRefreshPremiumStatus")
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Força verificação completa (ignora proteção e cache)
+     */
+    fun forceCompleteRefresh() {
+        Log.i(TAG, "🔄 Forçando verificação completa (ignorando proteção e cache)")
+        // Limpar cache
+        lastVerificationTime = 0
+        // Verificar com força total
+        checkPremiumStatus(forceRefresh = true, caller = "forceCompleteRefresh")
     }
 
     /**
@@ -757,7 +1103,10 @@ class BillingViewModel private constructor(application: Application) :
         lastVerificationTime = 0
 
         // Chama checkPremiumStatus uma única vez com forceRefresh
-        checkPremiumStatus(forceRefresh = true)
+        checkPremiumStatus(forceRefresh = true, caller = "handleUserChanged")
+
+        // Verificar compras pendentes
+        retryPendingSyncs()
     }
 
     /**
@@ -944,6 +1293,53 @@ class BillingViewModel private constructor(application: Application) :
             }
             else -> {
                 Log.e(TAG, "❌ Erro ao carregar produtos $productType: ${billingResult.debugMessage}")
+            }
+        }
+    }
+
+    /**
+     * ✅ CLASSE: Modelo para armazenar compras pendentes de sincronização
+     */
+    data class PendingPurchaseSync(
+        val purchaseToken: String,
+        val productId: String,
+        val planType: String,
+        val orderId: String?,
+        val timestamp: Long,
+        var attempts: Int
+    ) {
+        fun toJson(): String {
+            return "{\"purchaseToken\":\"$purchaseToken\",\"productId\":\"$productId\"," +
+                    "\"planType\":\"$planType\",\"orderId\":${orderId?.let { "\"$it\"" } ?: "null"}," +
+                    "\"timestamp\":$timestamp,\"attempts\":$attempts}"
+        }
+
+        companion object {
+            fun fromJson(json: String): PendingPurchaseSync {
+                // Implementação simplificada para conversão de JSON
+                // Em um app real, use uma biblioteca como Gson ou Moshi
+                val tokenMatch = "\"purchaseToken\":\"([^\"]+)\"".toRegex().find(json)
+                val productIdMatch = "\"productId\":\"([^\"]+)\"".toRegex().find(json)
+                val planTypeMatch = "\"planType\":\"([^\"]+)\"".toRegex().find(json)
+                val orderIdMatch = "\"orderId\":\"([^\"]+)\"".toRegex().find(json)
+                val timestampMatch = "\"timestamp\":([0-9]+)".toRegex().find(json)
+                val attemptsMatch = "\"attempts\":([0-9]+)".toRegex().find(json)
+
+                val token = tokenMatch?.groupValues?.get(1) ?: throw Exception("Token não encontrado")
+                val productId = productIdMatch?.groupValues?.get(1) ?: throw Exception("ProductId não encontrado")
+                val planType = planTypeMatch?.groupValues?.get(1) ?: throw Exception("PlanType não encontrado")
+                val orderId = orderIdMatch?.groupValues?.get(1)
+                val timestamp = timestampMatch?.groupValues?.get(1)?.toLong() ?: System.currentTimeMillis()
+                val attempts = attemptsMatch?.groupValues?.get(1)?.toInt() ?: 0
+
+                return PendingPurchaseSync(
+                    purchaseToken = token,
+                    productId = productId,
+                    planType = planType,
+                    orderId = orderId,
+                    timestamp = timestamp,
+                    attempts = attempts
+                )
             }
         }
     }

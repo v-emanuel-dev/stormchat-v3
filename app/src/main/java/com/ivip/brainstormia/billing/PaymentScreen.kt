@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +69,7 @@ import com.ivip.brainstormia.theme.PrimaryColor
 import com.ivip.brainstormia.theme.TextColorDark
 import com.ivip.brainstormia.theme.TextColorLight
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +82,6 @@ fun PaymentScreen(
     val context = LocalContext.current
     val currentActivity = context as? android.app.Activity
 
-    // ✅ CORREÇÃO 1: Verificação segura do BillingViewModel
     val billingViewModel = remember {
         try {
             (context.applicationContext as? BrainstormiaApplication)?.billingViewModel
@@ -93,21 +94,11 @@ fun PaymentScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // ✅ CORREÇÃO 2: Estados com verificação de null
     val products by (billingViewModel?.products?.collectAsState() ?: remember { mutableStateOf(emptyList()) })
     val isPremiumUser by (billingViewModel?.isPremiumUser?.collectAsState() ?: remember { mutableStateOf(false) })
     val purchaseInProgress by (billingViewModel?.purchaseInProgress?.collectAsState() ?: remember { mutableStateOf(false) })
 
-    // ✅ CORREÇÃO 3: Verificar se BillingViewModel está disponível
     if (billingViewModel == null) {
-        LaunchedEffect(Unit) {
-            snackbarHostState.showSnackbar(
-                message = "Erro: Sistema de pagamentos indisponível",
-                duration = SnackbarDuration.Long
-            )
-        }
-
-        // Mostrar tela de erro em vez de crash
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -150,23 +141,36 @@ fun PaymentScreen(
         return
     }
 
-    // ✅ CORREÇÃO 4: Verificar se é usuário premium e redirecionar
-    LaunchedEffect(isPremiumUser) {
-        if (isPremiumUser) {
-            delay(1000) // Dar tempo para o usuário ver a mensagem de sucesso
-            onPurchaseComplete()
-        }
+    // ✅ INÍCIO DA CORREÇÃO APLICADA
+    // Este LaunchedEffect observa a mudança no estado de 'purchaseInProgress' e 'isPremiumUser'
+    // para garantir uma reação robusta e no momento certo.
+    LaunchedEffect(purchaseInProgress, isPremiumUser) {
+        snapshotFlow { purchaseInProgress }
+            .filter { inProgress -> !inProgress } // Filtra para o momento exato em que a compra termina
+            .collect {
+                // Neste ponto, o fluxo de compra acabou. Agora verificamos o resultado.
+                if (isPremiumUser) {
+                    // Se o usuário for premium (mesmo que temporariamente), mostramos o sucesso.
+                    Log.d("PaymentScreen", "Compra finalizada. Usuário é premium. Navegando para a tela de sucesso.")
+                    snackbarHostState.showSnackbar(
+                        message = "Compra realizada com sucesso!",
+                        duration = SnackbarDuration.Short
+                    )
+                    delay(1500) // Tempo para o usuário ver a mensagem.
+                    onPurchaseComplete()
+                } else {
+                    Log.d("PaymentScreen", "Compra finalizada, mas o status do usuário não é premium.")
+                }
+            }
     }
+    // ✅ FIM DA CORREÇÃO APLICADA
 
-    // ✅ CORREÇÃO 5: Carregar produtos com tratamento de erro
     LaunchedEffect(Unit) {
         try {
             if (products.isEmpty()) {
                 Log.d("PaymentScreen", "Carregando produtos...")
                 billingViewModel.queryProducts()
-
-                // Timeout para carregar produtos
-                delay(10000) // 10 segundos
+                delay(10000)
                 if (products.isEmpty()) {
                     snackbarHostState.showSnackbar(
                         message = "Não foi possível carregar os planos. Tente novamente.",
@@ -183,9 +187,7 @@ fun PaymentScreen(
         }
     }
 
-    // Cores específicas do tema
     val backgroundColor = if (isDarkTheme) BackgroundColorDark else BackgroundColor
-    val cardColor = if (isDarkTheme) Color(0xFF121212) else Color.White
     val textColor = if (isDarkTheme) TextColorLight else TextColorDark
     val textSecondaryColor = if (isDarkTheme) TextColorLight.copy(alpha = 0.7f) else TextColorDark.copy(alpha = 0.9f)
     val highlightColor = if (isDarkTheme) BrainGold else PrimaryColor
@@ -224,7 +226,6 @@ fun PaymentScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo
                 Box(
                     modifier = Modifier
                         .size(90.dp)
@@ -242,7 +243,6 @@ fun PaymentScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Título e descrição
                 Text(
                     text = stringResource(R.string.premium_app_title),
                     fontSize = 28.sp,
@@ -252,7 +252,6 @@ fun PaymentScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Lista de planos
                 Text(
                     text = stringResource(R.string.choose_plan),
                     fontSize = 18.sp,
@@ -263,7 +262,6 @@ fun PaymentScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (products.isEmpty()) {
-                    // Estado de carregamento
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -272,16 +270,13 @@ fun PaymentScreen(
                         CircularProgressIndicator(
                             color = if (isDarkTheme) BrainGold else PrimaryColor
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Text(
                             text = stringResource(R.string.loading_plans),
                             color = textSecondaryColor
                         )
                     }
                 } else {
-                    // Filtramos para mostrar apenas as assinaturas e compras pontuais
                     val subscriptionProducts = products.filter {
                         it.productType == "subs" || it.productId == "vital"
                     }.sortedBy { prod ->
@@ -299,13 +294,11 @@ fun PaymentScreen(
                             color = textSecondaryColor,
                             textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
                     } else {
                         subscriptionProducts.forEach { product ->
                             SubscriptionPlanCard(
                                 product = product,
                                 onSelectPlan = {
-                                    // ✅ CORREÇÃO 6: Verificações antes de iniciar compra
                                     try {
                                         if (currentActivity != null && !purchaseInProgress) {
                                             Log.d("PaymentScreen", "Iniciando compra do produto: ${product.productId}")
@@ -335,7 +328,6 @@ fun PaymentScreen(
                                 secondaryTextColor = textSecondaryColor,
                                 highlightColor = highlightColor
                             )
-
                             Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
@@ -357,7 +349,6 @@ fun SubscriptionPlanCard(
     val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E1E1E) else Color.White
     val borderColor = if (isDarkTheme) highlightColor.copy(alpha = 0.3f) else highlightColor.copy(alpha = 0.5f)
 
-    // Obter informações do produto
     val productName = when {
         product.productId.contains("mensal", ignoreCase = true) -> "Plano Mensal"
         product.productId.contains("anual", ignoreCase = true) -> "Plano Anual"
@@ -365,7 +356,6 @@ fun SubscriptionPlanCard(
         else -> product.name.takeIf { it.isNotEmpty() } ?: "Plano Premium"
     }
 
-    // Obter preço do produto
     val price = when (product.productType) {
         BillingClient.ProductType.SUBS -> {
             product.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice ?: "Preço não disponível"
@@ -376,7 +366,6 @@ fun SubscriptionPlanCard(
         else -> "Preço não disponível"
     }
 
-    // Descrição baseada no tipo de plano
     val description = when {
         product.productId.contains("mensal", ignoreCase = true) -> "Acesso completo por 1 mês\nRenovação automática"
         product.productId.contains("anual", ignoreCase = true) -> "Acesso completo por 1 ano\nEconomize com o plano anual"
@@ -391,72 +380,45 @@ fun SubscriptionPlanCard(
             .clickable { onSelectPlan() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-        border = BorderStroke(
-            width = 1.dp,
-            color = borderColor
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDarkTheme) 4.dp else 2.dp
-        )
+        border = BorderStroke(width = 1.dp, color = borderColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 4.dp else 2.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            // Nome do plano
+        Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
             Text(
                 text = productName,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = textColor
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Preço
             Text(
                 text = price,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = highlightColor
             )
-
             Spacer(modifier = Modifier.height(12.dp))
-
-            // Descrição
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTextColor,
                 lineHeight = 20.sp
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Lista de benefícios
-            Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 BenefitItem("✓ Acesso a todos os modelos de IA", textColor)
                 BenefitItem("✓ Geração de imagens ilimitada", textColor)
                 BenefitItem("✓ Upload de arquivos", textColor)
                 BenefitItem("✓ Backup automático", textColor)
                 BenefitItem("✓ Suporte prioritário", textColor)
-
                 if (product.productId.contains("vital", ignoreCase = true)) {
                     BenefitItem("✓ Sem renovações necessárias", highlightColor)
                 }
             }
-
             Spacer(modifier = Modifier.height(20.dp))
-
-            // Botão de seleção
             Button(
                 onClick = onSelectPlan,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = highlightColor,
@@ -478,9 +440,7 @@ private fun BenefitItem(
     text: String,
     color: Color
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,

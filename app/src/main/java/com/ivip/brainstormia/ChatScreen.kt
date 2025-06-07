@@ -919,35 +919,25 @@ fun ChatScreen(
         )
     }
 
-    // Efeitos para verificação de usuário premium e outros eventos
+    // ✅ CÓDIGO CORRIGIDO
+
+    // Efeito para verificação de status quando o usuário muda ou a tela inicia.
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
-            // MODIFICAÇÃO: Verificação mais robusta em múltiplos estágios
-
-            // Primeira verificação imediata
-            chatViewModel.forceCheckPremiumStatus(highPriority = true)
-
-            // Segunda verificação após breve atraso
-            delay(700)
-            chatViewModel.forceCheckPremiumStatus(highPriority = true)
-
-            // Terceira verificação após sistema estabilizar
-            delay(2000)
+            // Chama a nova função unificada que delega a verificação para o BillingViewModel.
+            // O próprio BillingViewModel já tem a lógica de cache e debounce.
+            Log.d("ChatScreen", "Usuário detectado, forçando verificação de status premium.")
             chatViewModel.forceCheckPremiumStatus()
         }
     }
 
+    // Efeito para verificação periódica (opcional, mas bom para manter o status atualizado)
     LaunchedEffect(Unit) {
-        // Verificação imediata ao iniciar a tela
-        if (currentUser != null) {
-            chatViewModel.checkIfUserIsPremium()
-        }
-
-        // Verificação periódica
         while (true) {
-            delay(60000) // 1 minuto
+            delay(3 * 60 * 1000L) // Verificar a cada 3 minutos
             if (currentUser != null) {
-                chatViewModel.checkIfUserIsPremium()
+                Log.d("ChatScreen", "Verificação periódica de status premium.")
+                chatViewModel.forceCheckPremiumStatus()
             }
         }
     }
